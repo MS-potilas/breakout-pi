@@ -101,8 +101,7 @@ You can install this game into your RetroPie build either under the **Ports** me
 3. **Paste the following content** into the file:
    ```bash
    #!/bin/bash
-   cd "~/RetroPie/roms/ports/breakout-pi"
-   python3 breakout.py
+   python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py
    ```
 
 4. **Make the script executable**:
@@ -112,22 +111,31 @@ You can install this game into your RetroPie build either under the **Ports** me
 
 ### Method 2: Optional Installation under "Arcade"
 
-If you prefer to have Breakout listed alongside your other classic arcade games:
-1. Keep the game files in `~/RetroPie/roms/ports/breakout` as shown in Method 1.
-2. Create the launch script inside your **arcade** roms folder instead:
-   ```bash
-   nano ~/RetroPie/roms/arcade/Breakout.sh
-   ```
-3. Paste the same launcher script text from Method 1 into this file and make it executable with `chmod +x`.
+If you prefer to have Breakout listed alongside your other classic arcade games, you can register it as a custom "emulator":
 
-*After completing either method, restart EmulationStation to see the game appear in your chosen menu!*
+1. Keep the game files in `~/RetroPie/roms/ports/breakout-pi` as shown in Method 1.
+2. Remove the Ports launch script, create a dummy zip file in the arcade directory, and open the arcade emulator configuration:
+   ```bash
+   rm ~/RetroPie/roms/ports/Breakout.sh
+   touch ~/RetroPie/roms/arcade/breakout.zip
+   nano /opt/retropie/configs/arcade/emulators.cfg
+   ```
+
+3. **Add this line to the end of the file** (then save and exit):
+   ```bash
+   breakout-pi = "python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py"
+   ```
+
+4. **Restart EmulationStation** (via Main Menu -> Quit -> Restart EmulationStation). A game named **breakout** will now appear under your *Arcade* system.
+
+5. **Launch the game** from the Arcade menu. Press any key on your keyboard or controller during the launch screen to open the RetroPie Runcommand menu. Select **breakout-pi** as the default emulator for this specific game.
 
 ---
 
 ## Credits & Acknowledgements
 
 *   **Codebase:** The initial gameplay framework was inspired by a tutorial repository by [codegiovanni](https://github.com/codegiovanni/Breakout). The code has since been roughly 90% rewritten, optimized, and expanded to implement hardware-accurate physics and RetroPie support.
-*   **Graphics:** The 16:9 arcade bezel overlay is based on artwork from [The Bezel Project](https://github.com/thebezelproject/bezelproject-MAME). The original image was modified to remove transparency (replaced with a solid black background) to fit this standalone implementation.
+*   **Graphics:** The 16:9 arcade bezel overlay is based on artwork from [The Bezel Project](https://github.com/thebezelproject/bezelproject-MAME). The original image was modified to remove transparency (replaced with a solid black background) and the arcade game instructions were edited to match this standalone implementation.
 
 ## License
 

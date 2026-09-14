@@ -19,9 +19,14 @@ The game is designed to be highly faithful to its historic TTL predecessor, emul
 *   **Modern Enhancements:** Subtle quality-of-life improvements (can be toggled off via CLI options).
 *   **Flexible Display:** Seamlessly switches between full-screen and windowed modes.
 *   **Controls:** 
+    *   **1, spacebar, mouse button, or joystick button:** Start a 1-player game.
+    *   **2:** Start a 2-player game.
+    *   **Spacebar, mouse button, or joystick button:** Launch ball
     *   **Mouse / Keyboard (Arrow Keys):** Move the paddle left or right.
-    *   **Joystick / D-Pad:** Full RetroPie controller support.
-    *   **Esc / Q:** Exit the game.
+    *   **Joystick:** Move the paddle left or right.
+    *   **P:** Pause the game (unless `--nopause` is used)
+    *   **F:** Toggle between Full FPS (game runs as fast as it can) and 60 FPS
+    *   **Esc:** Exit the game.
 
 ## Screenshots
 
@@ -67,6 +72,8 @@ sudo apt install python3-pygame
    python3 breakout.py
    ```
 
+   You can any [command line options](#command-line-options) after breakout.py.
+
 ---
 
 ## Command-Line Options
@@ -75,9 +82,33 @@ You can customize the game mode and disable enhancements using the following fla
 
 | Option | Description |
 | :--- | :--- |
-| `--fullscreen` | Opens the game in full-screen mode (default when run without a window manager). |
+| `‑‑fullscreen` | Opens the game in full-screen mode (default when run without a window manager). |
 | `--windowed` | Opens the game in a windowed mode. |
-| `--authentic` | Disables all modern enhancements and forces strict 1976 TTL-faithful rules. |
+| `--authentic` | Disables all modern enhancements and forces strict 1976 TTL-faithful rules. Implies `--nohappyend`, `--noservelight`, `--nowallshift`|
+| `--nopause` | Pause not enabled. |
+| `‑‑nohappyend` | Disables the better new ending and enables the original ending, where, after clearing the second wall, the player must lose all their balls before the game ends, which is somewhat depressing. In new, happy ending, the game ends when the last brick is destroyed, score and ball number stay on the screen. |
+| `‑‑noservelight` | Do not show "SERVE"-light. |
+| `‑‑nowallshift` | Do not shift brick wall 2 pixels right. 2 wall shift centers the wall, on original 1976 game it is not centered.|
+| `--bigpaddle` | Tired of how hard the game is? Try this 2 x wider paddle option. The game is still hard to play through, but it is more possible than with the tiny default paddle. |
+| `--mini` | The game shrunk 50% by width and height. Nice in window, for example. |
+| `‑‑notextoverlay` | Disable "PLAYER UP" and  "BALL IN PLAY" overlay texts |
+| `--fullfps` | The game starts in full FPS mode. |
+| `--aiplay` | AI plays the game. Tip: you can use arrow keys or joystick (but not mouse) to make AI miss the ball. |
+| `‑‑nocolorstrips` or `‑‑nocolors` or `‑‑monochrome` or `‑‑mono` | No color strips, just black and white monitor. |
+| `--fontgap` | Move the single digits away from the wall. |
+| `--nobezel` | Do not use bezel art. |
+| `--altbezel` | Use alternate bezel art. Cannot be used in fullscreen mode (which does not support bezels). |
+| `‑‑rainbowcolors` or `‑‑altcolors` | Swap the green and yellow colors so that the colors are in the order of the rainbow. |
+
+
+Sound scale options, default scale is major.
+
+| Option | Description |
+| :--- | :--- |
+| `--minor` | Minor scale. |
+| `--rock` | Rock scale. |
+| `--blues` | Blues scale. |
+| `--pentatonic or --penta` | Pentatonic scale. |
 
 
 ---
@@ -125,6 +156,8 @@ If you prefer to have Breakout listed alongside your other classic arcade games,
    ```bash
    breakout-pi = "python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py"
    ```
+
+   (Add any [command line options](#command-line-options) between **breakout.py** and **"** to the line you add)
 
 4. **Restart EmulationStation** (via Main Menu -> Quit -> Restart EmulationStation). A game named **breakout** will now appear under your *Arcade* system.
 

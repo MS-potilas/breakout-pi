@@ -2,7 +2,6 @@
 
 [![Language](https://img.shields.io/badge/language-python-blue.svg?style=flat)](https://www.python.org)
 [![Module](https://img.shields.io/badge/module-pygame-brightgreen.svg?style=flat)](http://www.pygame.org/news.html)
-[![License](https://shields.io)](LICENSE)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)](LICENSE)
 
 

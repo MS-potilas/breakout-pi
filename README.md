@@ -79,7 +79,7 @@ You can customize the game mode and disable enhancements using the following fla
 | `--fullscreen` | Opens the game in full-screen mode (default when run without a window manager). |
 | `--windowed` | Opens the game in a windowed mode. |
 | `--authentic` | Disables all modern enhancements and forces strict 1976 TTL-faithful rules. |
-| `[LISÄÄ OPTIO]` | [Lisää tähän kuvaus muista optioistasi, esim. --nocase tai vastaavat] |
+
 
 ---
 
@@ -91,7 +91,7 @@ You can install this game into your RetroPie build either under the **Ports** me
 
 1. **Move the project folder** to your RetroPie roms directory:
    ```bash
-   mv ../REPO-NIMI ~/RetroPie/roms/ports/breakout
+   mv ../breakout-pi ~/RetroPie/roms/ports/breakout-pi
    ```
 
 2. **Create a launch script** inside the ports directory:
@@ -102,7 +102,7 @@ You can install this game into your RetroPie build either under the **Ports** me
 3. **Paste the following content** into the file:
    ```bash
    #!/bin/bash
-   cd "~/RetroPie/roms/ports/breakout"
+   cd "~/RetroPie/roms/ports/breakout-pi"
    python3 breakout.py
    ```
 
@@ -127,8 +127,8 @@ If you prefer to have Breakout listed alongside your other classic arcade games:
 
 ## Credits & Acknowledgements
 
-*   **Codebase:** The initial gameplay framework was inspired by a tutorial repository by [codegiovanni](https://github.com). The code has since been roughly 90% rewritten, optimized, and expanded to implement hardware-accurate physics and RetroPie support.
-*   **Graphics:** The 16:9 arcade bezel overlay is based on artwork from [The Bezel Project](https://github.com). The original image was modified to remove transparency (replaced with a solid black background) to fit this standalone implementation.
+*   **Codebase:** The initial gameplay framework was inspired by a tutorial repository by [codegiovanni](https://github.com/codegiovanni/Breakout). The code has since been roughly 90% rewritten, optimized, and expanded to implement hardware-accurate physics and RetroPie support.
+*   **Graphics:** The 16:9 arcade bezel overlay is based on artwork from [The Bezel Project](https://github.com/thebezelproject/bezelproject-MAME). The original image was modified to remove transparency (replaced with a solid black background) to fit this standalone implementation.
 
 ## License
 

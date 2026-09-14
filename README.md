@@ -35,12 +35,12 @@ Click on any image to view it in full resolution.
 <table align="center">
   <tr>
     <td align="center" width="50%">
-      <b>Title Screen / Bezel View</b><br>
-      <a href="https://githubusercontent.com"><img src="assets/screenshot1.jpg" width="100%" alt="Breakout Title Screen"></a>
+      <b>Full Screen, Default Bezel, Game Paused</b><br>
+      <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/full-screen.jpg"><img src="assets/full-screen.jpg" width="100%" alt="Full Screen with defau bezell"></a>
     </td>
     <td align="center" width="50%">
-      <b>Gameplay</b><br>
-      <a href="https://githubusercontent.com"><img src="assets/screenshot2.jpg" width="100%" alt="Breakout Gameplay"></a>
+      <b>Waiting for Serve (light is on)</b><br>
+      <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/full-screen-waiting-for-serve.jpg"><img src="assets/full-screen-waiting-for-serve.jpg" width="100%" alt="Waiting for serve"></a>
     </td>
   </tr>
 </table>

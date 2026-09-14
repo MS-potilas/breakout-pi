@@ -59,8 +59,8 @@ sudo apt install python3-pygame
 
 1. **Clone the repository** and navigate to the project directory:
    ```bash
-   git clone https://github.com
-   cd REPO-NIMI
+   git clone https://github.com/MS-potilas/breakout-pi.git
+   cd breakout-pi
    ```
 
 2. **Run the game**:

@@ -39,6 +39,8 @@ WINDOW_H = 1080
 PADDLE_WIDTH = 46
 PADDLE_HEIGHT = 19
 
+PADDLE_SPEED = 10
+
 PADDLE_Y_FROM_BOTTOM = 106
 
 BRICK_WIDTH = 42
@@ -82,20 +84,17 @@ greyscale = False
 if '-bigpaddle ' in cmdline:
     PADDLE_WIDTH *= 2
 
-
 if '-mini ' in cmdline:
     mini = True
 
 if '-notextoverlay ' in cmdline:
     dotextoverlay = False
 
-
 if '-aiplay ' in cmdline:
     aiplay = True
 
 if '-fullfps ' in cmdline:
     fullfps = True
-
 
 if '-nocolorstrips ' in cmdline or '-nocolors ' in cmdline or '-monochrome ' in cmdline or '-mono ' in cmdline:
     nocolorstrips = True
@@ -108,7 +107,6 @@ if '-nowallshift ' in cmdline:
 
 if nocolorstrips:
     GREY = WHITE
-
 
 if '-nohappyend ' in cmdline:
     happyend = False
@@ -189,7 +187,6 @@ pygame.display.set_caption("Breakout")
 clock = pygame.time.Clock()
 
 
-
 RED = (198, 8, 0)
 ORANGE = (198, 130, 0)
 GREEN = (0, 198, 0)
@@ -215,10 +212,6 @@ if '-greyscale ' in cmdline or '-grayscale ' in cmdline:
 # "PLAYING"
 game_state = "ATTRACT" 
 
-all_sprites_list = pygame.sprite.Group()
-ball_list = pygame.sprite.Group()
-paddle_list = pygame.sprite.Group()
-
 # global 2 player game variables
 is_two_player = False
 current_player = 1
@@ -226,10 +219,10 @@ current_player = 1
 waiting_for_serve = True
 serve_delay_timer = 0       # time when serve delay ends
 
-def initial_ball_speed():   # "initial horizontal speed is random" - service manual
+def initial_ball_speed():   # "initial horizontal speed is random" -service manual
     return [random.choice([-4, -3, -2, 2, 3, 4]), 4]
 
-# serve delay "no loger than 4 seconds" (cut it down to 3)
+# serve delay "no loger than 4 seconds" (cut it down to 3) -service manual
 def get_serve_delay():
     return random.randint(1500, 3000)
 
@@ -242,7 +235,7 @@ player_data = {
         "hit_counter": 0,
         "highest_row_hit": False,
         "paddle_shrunk": False,
-        "bricks_state": []  # bricks left
+        "bricks_state": []      # bricks left on screen
     },
     2: {
         "score": 0,
@@ -255,12 +248,12 @@ player_data = {
     }
 }
 
+#resets all player data and starts a new game, either 1-player or two-player
 def start_new_game(two_player_mode):
-    #resets all player data and starts a new game, either 1-player or two-player
     global game_state, current_player, is_two_player, player_data
     
     is_two_player = two_player_mode
-    current_player = 1  # Peli alkaa aina Pelaajasta 1
+    current_player = 1  # Player 1 always starts the game
     game_state = "PLAYING"
     
     # reset player's data
@@ -271,7 +264,7 @@ def start_new_game(two_player_mode):
         player_data[p]["hit_counter"] = 0
         player_data[p]["highest_row_hit"] = False
         player_data[p]["paddle_shrunk"] = False
-        player_data[p]["bricks_state"] = []  # Tyhjä lista tarkoittaa, että luodaan täysi seinä
+        player_data[p]["bricks_state"] = []         # empty list -> create full wall
         
     # restore original paddle size (in case it was shrunk)
     paddle.grow()
@@ -292,7 +285,7 @@ def save_game_data():
             "current_player": current_player,
             "is_two_player": is_two_player
         }
-        # 2. Tallennetaan JSON-tiedostoon
+        # save to pickle
         with open(".breakout_dump.pkl", "wb") as tiedosto:
             pickle.dump(tallennettava_data, tiedosto)
     except:
@@ -304,20 +297,21 @@ def load_game_data():
         with open(".breakout_dump.pkl", "rb") as tiedosto:
             ladattu_data = pickle.load(tiedosto)
 
-        # Puretaan tiedot takaisin muuttujiin
+        # get variables back
         player_data = ladattu_data["player_data"]
         current_player = ladattu_data["current_player"]
         is_two_player = ladattu_data["is_two_player"]
         if not is_two_player:
             current_player = 1
-        #if player_data[current_player]['score'] == 896:
-        #    player_data[current_player]["bricks_state"] = []            
+        # if bricks are empty, don't call load_next_player_bricks, because it creates new bricks if wall is empty
         if player_data[current_player]["bricks_state"] != []:
             load_next_player_bricks(current_player)
     except:
         pass
         
-    
+
+def ball_initial_position():
+    return (GAME_WIDTH // 2, (GAME_HEIGHT - TOP_OFFSET - BRICKS_TOP - PADDLE_Y_FROM_BOTTOM) // 2 + TOP_OFFSET + BRICKS_TOP)
 
 def reset_to_attract():
     global game_state, waiting_for_serve
@@ -326,7 +320,7 @@ def reset_to_attract():
     waiting_for_serve = False  # no serve wait when switch to attract
 
     # reset ball position
-    ball.rect.center = (GAME_WIDTH // 2, GAME_HEIGHT // 2)
+    ball.rect.center = ball_initial_position()
     # reset ball speed
     ball.velocity = initial_ball_speed()
     load_game_data()
@@ -335,8 +329,8 @@ def reset_to_attract():
 def reset_ball_core():
     global serve_delay_timer
     
-    ball.rect.center = (GAME_WIDTH // 2, (GAME_HEIGHT - TOP_OFFSET) // 2 + TOP_OFFSET)
-    ball.velocity = [0, 0]  # Pallo pysyy aluksi paikoillaan
+    ball.rect.center = ball_initial_position()
+    ball.velocity = [0, 0]  # ball does not move first
     
     # Nollataan osumalaskurit
     player_data[current_player]["hit_counter"] = 0
@@ -439,7 +433,6 @@ N_Ab6 = 1661.22
 N_A6 = 1760.9
 N_Bb6 = 1864.66
 
-
 # 1976 arcade frequencies
 # dur'ish (major)
 beeps = [N_C5, N_C6, N_E6, N_F6, N_G6, N_A6]
@@ -459,7 +452,6 @@ if '-penta ' in cmdline or '-pentatonic ' in cmdline:
 # rock'ish
 if '-rock ' in cmdline:
     beeps = [N_C5, N_C6, N_E6, N_G6, N_A6, N_Bb6]
-
 
 sound_wall = generate_square_wave(beeps[0], duration_secs=0.03)        
 sound_paddle = generate_square_wave(beeps[1], duration_secs=0.04)      
@@ -506,16 +498,6 @@ class Paddle(pygame.sprite.Sprite):
         self.rect.width = self.original_width // 2
         self.rect.center = old_center                    
 
-    def moveRight(self, pixels):
-        self.rect.x += pixels
-        if self.rect.x > GAME_WIDTH - WALL_WIDTH - PADDLE_WIDTH:
-            self.rect.x = GAME_WIDTH - WALL_WIDTH - PADDLE_WIDTH
-
-    def moveLeft(self, pixels):
-        self.rect.x -= pixels
-        if self.rect.x < WALL_WIDTH:
-            self.rect.x = WALL_WIDTH
-
 
 class Ball(pygame.sprite.Sprite):
     def __init__(self, color, width, height):
@@ -531,12 +513,9 @@ class Ball(pygame.sprite.Sprite):
         self.rect.x += self.velocity[0]
         self.rect.y += self.velocity[1]
 
-    def bounce(self):
-        self.velocity[0] = self.velocity[0]
-        self.velocity[1] = -self.velocity[1]
-
 
 # quick and dirty class for reading joysticks
+# good thing is that it works in pygame 1 and 2
 class Joystick:
     def __init__(self):
         self.move = pygame.math.Vector2(0,0)
@@ -552,7 +531,7 @@ class Joystick:
             self.sticknames.append(name)
         
     def get_joy(self):
-        # Get count of joysticks (it may have changed? but apparently not)
+        # Get count of joysticks (it may have changed? at least in pygame 2)
         joystick_count = pygame.joystick.get_count()
         self.move.x = 0
         self.move.y = 0
@@ -585,32 +564,44 @@ paddle.rect.x = GAME_WIDTH // 2 - PADDLE_WIDTH // 2
 paddle.rect.y = GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11
 
 ball = Ball(WHITE, 12, 8)
-ball.rect.x = GAME_WIDTH // 2 - 5
-ball.rect.y = GAME_HEIGHT // 2 - 5
+
+ball_list = pygame.sprite.Group()
+paddle_list = pygame.sprite.Group()
+
+ball_list.add(ball)
+paddle_list.add(paddle)
+
 
 all_bricks = pygame.sprite.Group()
 
 
-total_hits = 0
-
-
 def save_current_player_bricks(p_num):
-    """Tallentaa tämänhetkisen seinän tiilien tiedot talteen ennen vuoronvaihtoa."""
+    # save current player's bricks before next player turn
     player_data[p_num]["bricks_state"] = []
     for brick in all_bricks:
-        # Tallennetaan monikko (tuple) uudistetussa parametrijärjestyksessä
+        # save all needed brick data as tuple
         player_data[p_num]["bricks_state"].append((brick.color, brick.rect.x, brick.rect.y, brick.point_value))
 
 def load_next_player_bricks(p_num):
-    """Lataa seuraavan pelaajan tiiliseinän takaisin ruudulle."""
+    # load next player's bricks back to screen
     all_bricks.empty()
     
-    # Jos kyseessä on pelaajan ihka ensimmäinen vuoro, luodaan täysi uusi seinä
+    # if player's first turn, create new full wall
     if not player_data[p_num]["bricks_state"]:
-        bricks()  # Alkuperäinen tiilienluontifunktiosi, joka täyttää all_bricks-ryhmän
+        rebuild_brick_wall()
     else:
-        # Puretaan tallennetut tiedot ja luodaan tiilit takaisin
+        # reconstruct bricks from saved data
         for color, x, y, point_value in player_data[p_num]["bricks_state"]:
+            # fix the colors (in case rainbowcolors or greyscale is used)
+            # (point value is always tied with certain color band/strip)
+            if point_value == 7:
+                color = RED
+            elif point_value == 5:
+                color = ORANGE
+            elif point_value == 3:
+                color = GREEN
+            else:
+                color = YELLOW
             new_brick = Brick(color, x, y, point_value)
             all_bricks.add(new_brick)
 
@@ -621,94 +612,63 @@ def handle_ball_lost():
     player_data[p]["lives"] -= 1
     
     if is_two_player:
-        # Katsotaan onko toisella pelaajalla elämiä jäljellä
+        # check, if the other player has lives left
         next_player = 2 if current_player == 1 else 1
         
         if player_data[next_player]["lives"] > 0:
-            # Tallennetaan nykyisen pelaajan seinä ja ladataan seuraavan
+            # save current player's wall and load next's
             save_current_player_bricks(current_player)
             current_player = next_player
             load_next_player_bricks(current_player)
             
-            # Palautetaan mela sellaiseksi kuin se tällä pelaajalla oli
-            #set_paddle_size(player_data[current_player]["paddle_shrunk"])
+            # restore paddle state
             if player_data[current_player]["paddle_shrunk"]:
                 paddle.shrink()
             else:
                 paddle.grow()
-            #reset_ball_for_next_turn()
             reset_ball_with_serve_wait()
             return
             
-        # Jos seuraavalla pelaajalla ei ollut elämiä, mutta nykyisellä on vielä:
+        # next player had no lives, but current still has:
         elif player_data[current_player]["lives"] > 0:
-            # Jatkuva vuoro samalla pelaajalla
-            #reset_ball_for_next_turn()
+            # this player's turn continues with next ball
             reset_ball_with_serve_wait()
             return
     else:
-        # Yksinpeli jatkuu normaalisti jos elämiä jäljellä
+        # 1-player game continues, if lives left
         if player_data[1]["lives"] > 0:
-            #reset_ball_for_next_turn()
             reset_ball_with_serve_wait()
             return
 
+    # game over, save game data so it can be restored on next launch
     save_game_data()
-    # Jos kummallakin (tai yksinpelaajalla) elämät loppuivat, peli menee esittelytilaan
+
     reset_to_attract()
 
 
 
 
-def bricks():
+def rebuild_brick_wall():
     global all_bricks, wallshift
-    
-    # 1. Tyhjennetään vanhat tiilet ryhmästä kokonaan!
-    # Tämä varmistaa, ettei taustalle jää tuplatiiliä.
-    #all_bricks.empty()
+    # remove old bricks
+    all_bricks.empty()
+    # create new bricks, 8 rows, 14 columns
     for j in range(8):
         for i in range(14):
-            if j < 2:
-                pts = 7
-                brick = Brick(RED, wallshift+WALL_WIDTH + i  * (BRICK_WIDTH + X_GAP)-4, TOP_OFFSET + BRICKS_TOP + j * (Y_GAP + BRICK_HEIGHT), pts)
-                all_bricks.add(brick)
-            if 1 < j < 4:
-                pts = 5
-                brick = Brick(ORANGE, wallshift+WALL_WIDTH + i  * (BRICK_WIDTH + X_GAP)-4, TOP_OFFSET + BRICKS_TOP + j * (Y_GAP + BRICK_HEIGHT), pts)
-                all_bricks.add(brick)
-            if 3 < j < 6:
-                pts = 3
-                brick = Brick(GREEN, wallshift+WALL_WIDTH + i  * (BRICK_WIDTH + X_GAP)-4, TOP_OFFSET + BRICKS_TOP + j * (Y_GAP + BRICK_HEIGHT), pts)
-                all_bricks.add(brick)
-            if 5 < j < 8:
-                pts = 1
-                brick = Brick(YELLOW, wallshift+WALL_WIDTH + i  * (BRICK_WIDTH + X_GAP)-4, TOP_OFFSET + BRICKS_TOP + j * (Y_GAP + BRICK_HEIGHT), pts)
-                all_bricks.add(brick)
-
-def rebuild_brick_wall():
-    global all_bricks
-    
-    # 1. Tyhjennetään vanhat tiilet ryhmästä kokonaan!
-    # Tämä varmistaa, ettei taustalle jää tuplatiiliä.
-    all_bricks.empty()
-    bricks()
-
-#brick_wall = bricks()
-
-
-all_sprites_list.add(paddle)
-all_sprites_list.add(ball)
-ball_list.add(ball)
-paddle_list.add(paddle)
+            n = j // 2        # j // 2 == color strip number 0(RED) - 3
+            pts = 7 - n * 2   # 7, 5, 3, 1
+            c = [RED,ORANGE,GREEN,YELLOW][n]
+            brick = Brick(c, wallshift+WALL_WIDTH + i * (BRICK_WIDTH + X_GAP) - 4, TOP_OFFSET + BRICKS_TOP + j * (Y_GAP + BRICK_HEIGHT), pts)
+            all_bricks.add(brick)
+            
 
 if not aiplay:
     pygame.mouse.set_visible(False)
     pygame.event.set_grab(True) 
 
 
-
 def main():
-    global game_state, all_sprites_list, all_bricks, serve_delay_timer, waiting_for_serve, fullfps
+    global game_state, all_bricks, serve_delay_timer, waiting_for_serve, fullfps
 
     sfx_channel = pygame.mixer.Channel(0) 
     joysticks = Joystick()
@@ -717,10 +677,10 @@ def main():
     run = True
     paused = False
     
-    # Alustetaan peli käynnistettäessä esittelytilaan
     reset_to_attract()
 
-
+    ai_target = 0
+    
     if dooverlay:
         WIN_W, WIN_H = dascreen.get_size()
         
@@ -732,7 +692,7 @@ def main():
         pygame.display.flip()    # update whole screen at start
 
     while run:
-        # --- 1. TAPAHTUMIEN KÄSITTELY (EVENTS) ---
+        # get events, first joystick (using class)
         joysticks.get_joy()
         if len(joysticks.buttons):
             # upper buttons (including start & select, hopefully):
@@ -761,25 +721,24 @@ def main():
 
             if game_state == "PLAYING" and waiting_for_serve and not paused:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE or event.type == pygame.MOUSEBUTTONDOWN or len(joysticks.buttons):
-                    # Pelaaja painoi "Serve Ball" -nappia!
+                    # Player pressed "serve ball" button
                     waiting_for_serve = False
                     
-                    # Vasta NYT käynnistetään se 1.5 sekunnin mietintätauko, 
-                    # jonka jälkeen pallo ilmestyy ja lähtee liikkeelle
+                    # start serve delay timer
                     serve_delay_timer = pygame.time.get_ticks() + get_serve_delay()
 
-            # Attract-tilassa valitaan pelimuoto näppäimillä 1 tai 2
+            # select 1 or 2 player game in attract mode
             if game_state == "ATTRACT":
                 if event.type == pygame.KEYDOWN and (event.key == pygame.K_1 or event.key == pygame.K_SPACE or event.key == pygame.K_RETURN) or event.type == pygame.MOUSEBUTTONDOWN or len(joysticks.buttons):
-                    # Käynnistetään yksinpeli
+                    # start a 1-player game
                     start_new_game(two_player_mode=False)
                     
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_2:
-                    # Käynnistetään kaksinpeli
+                    # start a 2-player game
                     start_new_game(two_player_mode=True)
                         
 
-        # --- 2. PELILOGIIKAN PÄIVITYS (UPDATE) ---
+        # update game logic
         current_time = pygame.time.get_ticks()
         
         # Toggle visibility every 180ms
@@ -800,25 +759,25 @@ def main():
         if game_state in ["ATTRACT", "PLAYING"]:
 
             if game_state == "PLAYING" and not paused:
-                
-                if joysticks.move.x:            # -1 or 1
-                    paddle.rect.x += 10 * joysticks.move.x
+                # joystick input
+                if joysticks.move.x:            # -1...1
+                    paddle.rect.x += joysticks.move.x * PADDLE_SPEED
                 
                 # Handle Keyboard Inputs (Changes position by a fixed step)
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_LEFT]:
-                    paddle.rect.x -= 10
+                    paddle.rect.x -= PADDLE_SPEED
                 if keys[pygame.K_RIGHT]:
-                    paddle.rect.x += 10
-
+                    paddle.rect.x += PADDLE_SPEED
                 # Handle Mouse Inputs (Changes position by relative movement)
                 # get_rel() returns (delta_x, delta_y) since the last time it was called
                 if not aiplay:
                     mouse_dx, mouse_dy = pygame.mouse.get_rel()
                     paddle.rect.x += mouse_dx
+                    
             if (game_state == "ATTRACT" or aiplay) and not paused:
                 if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] > 0:
-                    AI_SPEED = 9  # Mailan maksiminopeus per frame
+                    AI_SPEED = PADDLE_SPEED - 1  # max speed per frame
                 elif ball.rect.centery > GAME_HEIGHT * 0.50 and ball.velocity[1] > 0:
                     AI_SPEED = 6
                 elif ball.rect.centery > GAME_HEIGHT * 0.45 and ball.velocity[1] > 0:
@@ -829,75 +788,56 @@ def main():
                     AI_SPEED = 1
                 else:
                     AI_SPEED = 0
+                if ball.rect.centery > GAME_HEIGHT * 0.70 and ball.velocity[1] < 0:
+                    AI_SPEED = 0
 
-                # Lasketaan etäisyys (ero) pallon ja mailan keskipisteiden välillä
-                distance = ball.rect.centerx - paddle.rect.centerx
+                # calculate distance between ball and paddle centers
+                distance = ball.rect.centerx + ai_target - paddle.rect.centerx
 
                 if abs(distance) < AI_SPEED:
-                    # Jos ollaan niin lähellä, että askeleella hypättäisiin yli,
-                    # asetetaan maila suoraan kohdalleen -> Ei tutinaa!
-                    paddle.rect.centerx = ball.rect.centerx
+                    paddle.rect.centerx = ball.rect.centerx + ai_target
                 else:
-                    # Muuten liikutaan täydellä nopeudella oikeaan suuntaan
-                    # np.sign(distance) palauttaa -1 tai 1 (tai 0) riippuen suunnasta
+                    # use full speed. np.sign(distance) returns -1 or 1 (or 0)
                     paddle.rect.x += int(np.sign(distance) * AI_SPEED)
             # Prevent Paddle From Leaving Screen Boundaries
-            # Adjust '10' and 'SCREEN_WIDTH - 10' based on your side wall thickness
-            if paddle.rect.left < 10:
-                paddle.rect.left = 10
-            if paddle.rect.right > GAME_WIDTH - 10:
-                paddle.rect.right = GAME_WIDTH - 10
-            
+            # original let the paddle go a little bit inside the wall, so do we:
+            if paddle.rect.left < 0:            # WALL_WIDTH
+                paddle.rect.left = 0            # WALL_WIDTH
+            if paddle.rect.right > GAME_WIDTH:  # - WALL_WIDTH
+                paddle.rect.right = GAME_WIDTH  # - WALL_WIDTH
 
-            # Tarkistetaan, onko alkupallon viive vielä käynnissä
+            # check, if serve delay timer is on
             if serve_delay_timer > 0:
                 if current_time >= serve_delay_timer:
-                    # Viive päättyi! Annetaan pallolle aloitusnopeus (esim. [4, 4] tai [-4, 4])
-                    # Alkuperäisessä pelissä suunta vaihteli, mutta tässä asetetaan perusnopeus
+                    # delay is over. get initial ball speed, random
                     ball.velocity = initial_ball_speed()
-                    serve_delay_timer = 0  # Nollataan ajastin, peli jatkuu normaalisti
-                else:
-                    # Viive on vielä käynnissä -> ohitetaan pallon liikuttaminen ja törmäykset
-                    pass
+                    serve_delay_timer = 0
+                # else delay is still on, do nothing
 
             if not paused:
-                # Jos viive ei ole käynnissä, pallo liikkuu ja törmäykset lasketaan normaalisti
-                #if serve_delay_timer == 0:
                 if not waiting_for_serve and serve_delay_timer == 0:
                     ball.update()
-                    #ball.update()
                 
-                paddle.update()
-                #all_sprites_list.update()
-                all_bricks.update()
-
             if ball.rect.y < TOP_OFFSET + 38:
                 ball.velocity[1] = abs(ball.velocity[1])
-                #wall_sound.play()
                 if game_state == 'PLAYING':
-                    #sound_wall.play()
                     sfx_channel.play(sound_wall)
 
             if ball.rect.x >= GAME_WIDTH - WALL_WIDTH - 10:
                 ball.velocity[0] = -abs(ball.velocity[0])
-                #wall_sound.play()
                 if game_state == 'PLAYING':
-                    #sound_wall.play()
                     sfx_channel.play(sound_wall)
 
             if ball.rect.x <= WALL_WIDTH:
                 ball.velocity[0] = abs(ball.velocity[0])
-                #wall_sound.play()
                 if game_state == 'PLAYING':
-                    #sound_wall.play()
                     sfx_channel.play(sound_wall)
 
-            # Jos pallo menee ohi melasta:
+            # if ball missed:
             if game_state == 'PLAYING':
                 if ball.rect.top > GAME_HEIGHT:
                     handle_ball_lost()
 
-            # Assuming 'ball' and 'paddle' are Pygame Sprite/Rect objects
             if game_state == 'PLAYING':
                 if ball.rect.colliderect(paddle.rect) and ball.velocity[1] > 0:
                     # 1. Force the strict, un-normalized vertical bounce flip
@@ -915,47 +855,35 @@ def main():
                         ball.velocity[0] = 2   # Inner Right: Soft vertical angle outward
                     else:
                         ball.velocity[0] = 5   # Far Right: Sharp shallow angle outward
-                    
+
+                    # when ai plays, vary the "hitting target point" like this, otherwise ai plays "too good"
                     if aiplay:
-                        speedo = random.choice([-2,2,5,5])
-                        ball.velocity[0] = speedo*math.copysign(1, ball.velocity[0])
+                        ai_target = random.randint(-paddle.rect.width//2, paddle.rect.width//2)
                         
-                    # Play paddle hit sound here
-                    #paddle_sound.play()
                     if game_state == 'PLAYING':
-                        #sound_paddle.play()
                         sfx_channel.play(sound_paddle)
-            #else:
             if game_state == 'ATTRACT':
                 if ball.rect.top >= GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 16:
                     ball.velocity[1] = -abs(ball.velocity[1])                
                     ball.velocity[0] = math.copysign(random.randint(3,4), ball.velocity[0])
                     if game_state == 'PLAYING':
-                        #sound_paddle.play()                
                         sfx_channel.play(sound_paddle)
 
-            # Assuming 'brick_group' is your Pygame Sprite Group for bricks
             collision_detected = False
 
             for brick in all_bricks:
-                # --- INSIDE YOUR BRICK COLLISION LOOP ---
                 if ball.rect.colliderect(brick.rect):
                     if game_state == 'PLAYING':
                         player_data[current_player]["score"] += brick.point_value
-                    
-                        # 1. Increment hit counter
                         player_data[current_player]["hit_counter"] += 1
-                        
                         
                     # Check row color for speed-up or paddle shrink
                     # (Assuming brick.color holds the color tuple or name)
                     if brick.color == RED or brick.color == ORANGE:
                         player_data[current_player]["highest_row_hit"] = True
                         
-                    # --- INSIDE YOUR BRICK COLLISION LOOP (where red row is verified) ---
                     if brick.color == RED and not player_data[current_player]["paddle_shrunk"]:
                         player_data[current_player]["paddle_shrunk"] = True
-                        
                         # Halve the paddle width
                         paddle.shrink()
                     
@@ -969,22 +897,12 @@ def main():
                     if player_data[current_player]["highest_row_hit"]:
                         base_y_speed = 7  # Maximum speed
 
-                    # 4. Apply the updated Y speed (preserving the current up/down direction)
+                    # Apply the updated Y speed (preserving the current up/down direction)
                     if ball.velocity[1] > 0:
                         ball.velocity[1] = base_y_speed
                     else:
                         ball.velocity[1] = -base_y_speed
 
-                    """
-                    # Handle standard bounce axis inversion
-                    overlap_x = min(ball.rect.right, brick.rect.right) - max(ball.rect.left, brick.rect.left)
-                    overlap_y = min(ball.rect.bottom, brick.rect.bottom) - max(ball.rect.top, brick.rect.top)
-                    
-                    if overlap_x < overlap_y:
-                        ball.velocity[0] *= -1 
-                    else:
-                        ball.velocity[1] *= -1
-                    """
                     # Handle standard bounce axis inversion
                     overlap_x = min(ball.rect.right, brick.rect.right) - max(ball.rect.left, brick.rect.left)
                     overlap_y = min(ball.rect.bottom, brick.rect.bottom) - max(ball.rect.top, brick.rect.top)
@@ -1026,8 +944,7 @@ def main():
 
             if collision_detected:
                 if len(all_bricks) == 0:
-                    # wall played through
-                    # which wall?
+                    # wall played through. which wall?
                     if player_data[current_player]["current_wall"] == 1:
                         player_data[current_player]["current_wall"] = 2
                         rebuild_brick_wall()
@@ -1072,18 +989,19 @@ def main():
                 pygame.draw.line(screen, (z,z,z), [GAME_WIDTH - WALL_WIDTH, i], [GAME_WIDTH - 1, i], 1)
             
         if not nocolorstrips:
+            # 46 is the height of the blue color strip
             pygame.draw.line(screen, BLUE, [(WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2], [(WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2 + 46], WALL_WIDTH)
             pygame.draw.line(screen, BLUE, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2 + 46], WALL_WIDTH)
 
-        if game_state != 'PLAYING':
+        if game_state != 'PLAYING':     # paddle area is solid blue wall
             pygame.draw.line(screen, GREY if nocolorstrips else BLUE, [(WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2],  [(GAME_WIDTH - WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2], PADDLE_HEIGHT+1)            
 
         if not nocolorstrips:
             pygame.draw.line(screen, RED, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * BRICK_HEIGHT + 2 * Y_GAP], WALL_WIDTH)
-            pygame.draw.line(screen, RED, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * BRICK_HEIGHT + 2 * Y_GAP], WALL_WIDTH)
+            pygame.draw.line(screen, RED, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * (BRICK_HEIGHT + Y_GAP)], WALL_WIDTH)
 
-            pygame.draw.line(screen, ORANGE, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * BRICK_HEIGHT + 2 * Y_GAP], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 4 * BRICK_HEIGHT + 4 * Y_GAP], WALL_WIDTH)
-            pygame.draw.line(screen, ORANGE, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * BRICK_HEIGHT + 2 * Y_GAP], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 4 * BRICK_HEIGHT + 4 * Y_GAP], WALL_WIDTH)
+            pygame.draw.line(screen, ORANGE, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * (BRICK_HEIGHT + Y_GAP)], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 4 * BRICK_HEIGHT + 4 * Y_GAP], WALL_WIDTH)
+            pygame.draw.line(screen, ORANGE, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * BRICK_HEIGHT + 2 * Y_GAP], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 4 * (BRICK_HEIGHT + Y_GAP)], WALL_WIDTH)
 
             pygame.draw.line(screen, GREEN, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 4 * BRICK_HEIGHT + 4 * Y_GAP], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 6 * BRICK_HEIGHT + 6 * Y_GAP], WALL_WIDTH)
             pygame.draw.line(screen, GREEN, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 4 * BRICK_HEIGHT + 4 * Y_GAP], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 6 * BRICK_HEIGHT + 6 * Y_GAP], WALL_WIDTH)
@@ -1173,9 +1091,7 @@ def main():
         else:
             if overlayname == 'breakouta':
                 dascreen.blit(overlay, (-(OVERLAY_W-WIN_W)//2, -(OVERLAY_H-WIN_H)//2))
-                pygame.display.update(screen.get_rect().move((OFFSET_X - (OVERLAY_W-WIN_W)//2, OFFSET_Y - (OVERLAY_H-WIN_H)//2)))
-            else:
-                pygame.display.update(screen.get_rect().move((OFFSET_X - (OVERLAY_W-WIN_W)//2, OFFSET_Y - (OVERLAY_H-WIN_H)//2)))
+            pygame.display.update(screen.get_rect().move((OFFSET_X - (OVERLAY_W-WIN_W)//2, OFFSET_Y - (OVERLAY_H-WIN_H)//2)))
         if not fullfps:
             clock.tick(FPS)
 

@@ -51,12 +51,12 @@ PADDLE_SPEED = 10
 
 PADDLE_Y_FROM_BOTTOM = 106
 
+BRICKS_TOP = 184
 BRICK_WIDTH = 42
 BRICK_HEIGHT = 13
-
-BRICKS_TOP = 184
 X_GAP = 6
 Y_GAP = 5
+
 WALL_WIDTH = 14
 
 
@@ -801,7 +801,7 @@ def main():
                     AI_SPEED = 1
                 else:
                     AI_SPEED = 0
-                if ball.rect.centery > GAME_HEIGHT * 0.70 and ball.velocity[1] < 0:
+                if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] < 0:
                     AI_SPEED = 0
 
                 # calculate distance between ball and paddle centers
@@ -884,13 +884,20 @@ def main():
 
             collision_detected = False
 
-            for brick in all_bricks:
+            #for brick in all_bricks:
+            for idx,brick in enumerate(all_bricks):
                 if ball.rect.colliderect(brick.rect):
-                    # count the collisions
+                    # count the collisions and find biggest collision
+                    csize = brick.rect.clip(ball.rect).width * brick.rect.clip(ball.rect).height
                     collision_count = 0
                     for b in all_bricks:
                         if ball.rect.colliderect(b.rect):
                             collision_count += 1
+                            ccsize = b.rect.clip(ball.rect).width * b.rect.clip(ball.rect).height
+                            if ccsize > csize:
+                                brick = b
+                                #print(f"bigger brick collision! {ccsize}>{csize}")
+                                csize = ccsize
                     if game_state == 'PLAYING':
                         player_data[current_player]["score"] += brick.point_value
                         player_data[current_player]["hit_counter"] += 1

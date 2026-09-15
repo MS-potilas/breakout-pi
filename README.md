@@ -53,7 +53,7 @@ Click on any image to view it in full resolution.
 <table align="center">
   <tr>
     <td align="center" width="50%">
-      <b>Full Screen, Default Bezel, Game Paused</b><br>
+      <b>Full-Screen, Default Bezel, Game Paused</b><br>
       <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/full-screen.jpg"><img src="assets/full-screen.jpg" width="100%" alt="Full Screen with default bezel"></a>
     </td>
     <td align="center" width="50%">
@@ -63,11 +63,11 @@ Click on any image to view it in full resolution.
   </tr>
   <tr>
     <td align="center" width="50%">
-      <b>Full Screen, Alternate Bezel, Rainbow Colors</b><br><tt>--altbezel --altcolors</tt><br>
+      <b>Full-Screen, Alternate Bezel, Rainbow Colors</b><br><tt>--altbezel --altcolors</tt><br>
       <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/full-screen-altbezel-rainbowcolors.jpg"><img src="assets/full-screen-altbezel-rainbowcolors.jpg" width="100%" alt="Full Screen, Alternate Bezel, Rainbow Colors"></a>
     </td>
     <td align="center" width="50%">
-      <b>Full Screen, No Bezel, No Overlay Tezt</b><br><tt>--nobezel --nooverlaytext</tt><br>
+      <b>Full-Screen, No Bezel, No Overlay Tezt</b><br><tt>--nobezel --nooverlaytext</tt><br>
       <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/full-screen-no-bezel-no-overlaytext-mono.jpg"><img src="assets/full-screen-no-bezel-no-overlaytext-mono.jpg" width="100%" alt="Full Screen, No Bezel, No Overlay Tezt"></a>
     </td>
   <tr>
@@ -126,7 +126,7 @@ You can completely customize your Breakout-Pi experience, tweak the visual style
 | `‑‑windowed` | Opens the game in a windowed mode. |
 | `--mini` | Scales the game display down to 50% width and height. Great for playing in a small window. |
 | `--nobezel` | Disables the digital artwork bezel. Perfect if you are using a real, physical cabinet bezel around your monitor! |
-| `--altbezel` | Uses alternative bezel art. *(Note: This cannot be used in fullscreen mode, which does not support bezels).* |
+| `--altbezel` | Uses alternative bezel art. *(Note: This cannot be used in windowed mode, which does not support bezels).* |
 | `‑‑nocolorstrips`<br>`‑‑nocolors`<br>`‑‑monochrome`<br>`--mono` | Disables the digital color overlay, reverting the game to a pure black-and-white monitor style. Ideal if you want to place real, physical colored plastic strips onto your physical monitor! |
 | `‑‑greyscale`<br>`‑‑grayscale` | Changes the color output to a classic greyscale palette. |
 | `‑‑rainbowcolors`<br>`--altcolors` | Swaps the default green and yellow brick rows so the entire wall accurately reflects the true color order of a rainbow. |
@@ -140,7 +140,7 @@ You can completely customize your Breakout-Pi experience, tweak the visual style
 | :--- | :--- |
 | `‑‑authentic` | For true purists. Disables all modern gameplay enhancements and forces strict, 1976 TTL-hardware-faithful rules. This option automatically implies `‑‑nohappyend`, `‑‑noservelight`, and `‑‑nowallshift`. |
 | `--nopause` | Disables the ability to pause the game. |
-| `‑‑nohappyend` | Disables the modern "happy ending" feature. Reverts to the original 1976 arcade ending where, after clearing the second wall, the player must intentionally lose all remaining balls to end the game. *(The modern default happy ending gracefully finishes the game when the last brick dies, keeping your score on screen).* |
+| `‑‑nohappyend` | Disables the modern "happy ending" feature. Reverts to the original 1976 arcade ending where, after clearing the second wall, the player must intentionally lose all remaining balls to end the game. *(The modern default happy ending gracefully finishes the game when the last brick dies, keeping your score and ball number on screen).* |
 | `‑‑noservelight` | Hides the "SERVE" indicator light on the screen. |
 | `‑‑nowallshift` | Disables the 2-pixel rightward shift of the brick wall. In the original 1976 arcade cabinet, the wall was slightly off-center. By default, Breakout-Pi centers the wall, but this flag restores the original off-center layout. |
 | `‑‑bigpaddle` | Doubles the width of your paddle. Perfect if you find the original 1976 difficulty brutal. The game remains challenging, but clearing the wall becomes much more achievable! |

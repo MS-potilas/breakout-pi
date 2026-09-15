@@ -473,7 +473,7 @@ sound_brick_red = generate_square_wave(beeps[5], duration_secs=0.02)
 
 
 class Brick(pygame.sprite.Sprite):
-    def __init__(self, color, x, y, value):
+    def __init__(self, color, x, y, value, row):
         super().__init__()
         self.image = pygame.Surface([BRICK_WIDTH, BRICK_HEIGHT])
         dacolor = GREY if nocolorstrips else color
@@ -483,6 +483,7 @@ class Brick(pygame.sprite.Sprite):
         self.rect.y = y
         self.point_value = value
         self.color = color
+        self.row = row
 
 
 class Paddle(pygame.sprite.Sprite):
@@ -591,7 +592,7 @@ def save_current_player_bricks(p_num):
     player_data[p_num]["bricks_state"] = []
     for brick in all_bricks:
         # save all needed brick data as tuple
-        player_data[p_num]["bricks_state"].append((brick.color, brick.rect.x, brick.rect.y, brick.point_value))
+        player_data[p_num]["bricks_state"].append((brick.color, brick.rect.x, brick.rect.y, brick.point_value, brick.row))
 
 def load_next_player_bricks(p_num):
     # load next player's bricks back to screen
@@ -602,7 +603,7 @@ def load_next_player_bricks(p_num):
         rebuild_brick_wall()
     else:
         # reconstruct bricks from saved data
-        for color, x, y, point_value in player_data[p_num]["bricks_state"]:
+        for color, x, y, point_value, row in player_data[p_num]["bricks_state"]:
             # fix the colors (in case rainbowcolors or greyscale is used)
             # (point value is always tied with certain color band/strip)
             if point_value == 7:
@@ -613,7 +614,8 @@ def load_next_player_bricks(p_num):
                 color = GREEN
             else:
                 color = YELLOW
-            new_brick = Brick(color, x, y, point_value)
+            y = TOP_OFFSET + BRICKS_TOP + row * (Y_GAP + BRICK_HEIGHT)
+            new_brick = Brick(color, x, y, point_value, row)
             all_bricks.add(new_brick)
 
 def handle_ball_lost():
@@ -669,7 +671,7 @@ def rebuild_brick_wall():
             n = j // 2        # j // 2 == color strip number 0(RED) - 3
             pts = 7 - n * 2   # 7, 5, 3, 1
             c = [RED,ORANGE,GREEN,YELLOW][n]
-            brick = Brick(c, wallshift+WALL_WIDTH + i * (BRICK_WIDTH + X_GAP) - 4, TOP_OFFSET + BRICKS_TOP + j * (Y_GAP + BRICK_HEIGHT), pts)
+            brick = Brick(c, wallshift+WALL_WIDTH + i * (BRICK_WIDTH + X_GAP) - 4, TOP_OFFSET + BRICKS_TOP + j * (Y_GAP + BRICK_HEIGHT), pts, j)
             all_bricks.add(brick)
             
 
@@ -788,9 +790,9 @@ def main():
                     
             if (game_state == "ATTRACT" or aiplay) and not paused:
                 if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] > 0:
-                    AI_SPEED = PADDLE_SPEED - 1  # max speed per frame
+                    AI_SPEED = PADDLE_SPEED  # max speed per frame
                 elif ball.rect.centery > GAME_HEIGHT * 0.50 and ball.velocity[1] > 0:
-                    AI_SPEED = 6
+                    AI_SPEED = 7
                 elif ball.rect.centery > GAME_HEIGHT * 0.45 and ball.velocity[1] > 0:
                     AI_SPEED = 4
                 elif ball.rect.centery > GAME_HEIGHT * 0.40:
@@ -869,7 +871,7 @@ def main():
 
                     # when ai plays, vary the "hitting target point" like this, otherwise ai plays "too good"
                     if aiplay:
-                        ai_target = random.randint(-paddle.rect.width//2, paddle.rect.width//2)
+                        ai_target = random.randint(-paddle.rect.width//3, paddle.rect.width//3)
                         
                     if game_state == 'PLAYING':
                         sfx_channel.play(sound_paddle)
@@ -884,6 +886,11 @@ def main():
 
             for brick in all_bricks:
                 if ball.rect.colliderect(brick.rect):
+                    # count the collisions
+                    collision_count = 0
+                    for b in all_bricks:
+                        if ball.rect.colliderect(b.rect):
+                            collision_count += 1
                     if game_state == 'PLAYING':
                         player_data[current_player]["score"] += brick.point_value
                         player_data[current_player]["hit_counter"] += 1
@@ -917,8 +924,12 @@ def main():
                     # Handle standard bounce axis inversion
                     overlap_x = min(ball.rect.right, brick.rect.right) - max(ball.rect.left, brick.rect.left)
                     overlap_y = min(ball.rect.bottom, brick.rect.bottom) - max(ball.rect.top, brick.rect.top)
-                    
-                    if overlap_x < overlap_y:
+
+                    # if we're hitting more than one brick, just back off!
+                    if collision_count > 1:
+                        ball.velocity[0] *= -1
+                        ball.velocity[1] *= -1
+                    elif overlap_x < overlap_y:
                         # --- side hit ---
                         # reverse direction only if ball is moving towards brick
                         if (ball.velocity[0] > 0 and ball.rect.centerx < brick.rect.centerx) or \

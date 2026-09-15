@@ -6,6 +6,7 @@ abspath_ = os.path.abspath(__file__)
 dname_ = os.path.dirname(abspath_)
 os.chdir(dname_)
 
+
 # store command line
 cmdline = " " + (" ".join(sys.argv)) + " "
 cmdline = cmdline.replace('‑', '-')         # non-breaking hyphen to hyphen (used in README.md)
@@ -564,16 +565,12 @@ class Joystick:
             axes = joystick.get_numaxes()
             for ii in range(axes):
                 axis = joystick.get_axis(ii)
-                if ii == 0:
-                    if axis < -0.5:
-                        self.move.x = -1
-                    if axis > 0.5:
-                        self.move.x = 1
-                if ii == 1:
-                    if axis < -0.5:
-                        self.move.y = -1
-                    if axis > 0.5:
-                        self.move.y = 1
+                # support analog movement
+                if axis:
+                    if ii == 0:
+                        self.move.x = axis
+                    if ii == 1:
+                        self.move.y = axis
             # get buttons
             numbuttons = joystick.get_numbuttons()
             for i in range(numbuttons):
@@ -736,6 +733,13 @@ def main():
 
     while run:
         # --- 1. TAPAHTUMIEN KÄSITTELY (EVENTS) ---
+        joysticks.get_joy()
+        if len(joysticks.buttons):
+            # upper buttons (including start & select, hopefully):
+            for j in range(6,15):
+                if j in joysticks.buttons:
+                    run = False
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -750,16 +754,6 @@ def main():
                     paused = False
                 elif not nopause and game_state == "PLAYING":
                     paused = True
-                
-
-            joysticks.get_joy()
-            if len(joysticks.buttons):
-                # upper buttons (including start & select, hopefully):
-                for j in range(6,15):
-                    if j in joysticks.buttons:
-                        run = False
-                    
-
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
                 fullfps = not fullfps

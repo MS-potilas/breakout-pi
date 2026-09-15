@@ -54,6 +54,7 @@ WALL_WIDTH = 14
 
 WHITE = (255, 255, 255)
 GREY = (225, 231, 225)
+DARKGREY = (200, 204, 200)
 BLACK = (0, 0, 0)
 BLUE = (0, 130, 198)
 
@@ -80,6 +81,10 @@ nopause = False
 wallshift = 2           # move the wall 2 pixels right, so that it is better centered than in the original
 dotextoverlay = True    # display "PLAYER UP" and  "BALL IN PLAY" texts as overlay
 greyscale = False
+easyblink = False
+
+if '-easyblink ' in cmdline:
+    easyblink = True
 
 if '-bigpaddle ' in cmdline:
     PADDLE_WIDTH *= 2
@@ -125,7 +130,6 @@ if '-authentic ' in cmdline:
     happyend = False
     nopause = True
     wallshift = 0
-
 
 
 if (is_windowing_system() and not "-fullscreen " in cmdline) or "-windowed " in cmdline:
@@ -744,7 +748,7 @@ def main():
         # Toggle visibility every 180ms
         # (current_time // 180) increments every 180ms. 
         # Using % 2 creates a steady alternating True/False cycle.
-        if (current_time // 180) % 2 == 0 and game_state == 'PLAYING' and not paused:
+        if (current_time // (360 if easyblink else 180)) % 2 == 0 and game_state == 'PLAYING' and not paused:
             score_visible = False
         else:
             score_visible = True
@@ -1020,9 +1024,13 @@ def main():
         bsize = 12
         gap = 6 if fontgap else 0
         # P1 score
+        if easyblink:
+            draw_retro_glyphs(screen, player1_score_text, start_x=61+gap, start_y=TOP_OFFSET + 110 + gap // 2, block_size=bsize, color=DARKGREY)
         if score_visible or current_player == 2:
             draw_retro_glyphs(screen, player1_score_text, start_x=61+gap, start_y=TOP_OFFSET + 110 + gap // 2, block_size=bsize)
         # P2 score
+        if easyblink:
+            draw_retro_glyphs(screen, player2_score_text, start_x=(GAME_WIDTH-WALL_WIDTH)//2+62+gap + 48, start_y=TOP_OFFSET + 110 + gap // 2, block_size=bsize, color=DARKGREY)
         if score_visible or current_player == 1:
             draw_retro_glyphs(screen, player2_score_text, start_x=(GAME_WIDTH-WALL_WIDTH)//2+62+gap + 48, start_y=TOP_OFFSET + 110 + gap // 2, block_size=bsize)
         # current player

@@ -116,39 +116,46 @@ sudo apt install python3-pygame
 
 ## Command-Line Options
 
-You can customize the game mode and disable enhancements using the following flags:
+You can completely customize your Breakout-Pi experience, tweak the visual style, or toggle modern quality-of-life enhancements using the following flags.
+
+### 📺 Display & Graphics Options
 
 | Option | Description |
 | :--- | :--- |
 | `‑‑fullscreen` | Opens the game in full-screen mode (default when run without a window manager). |
-| `--windowed` | Opens the game in a windowed mode. |
-| `--authentic` | Disables all modern enhancements and forces strict 1976 TTL-faithful rules. Implies `--nohappyend`, `--noservelight`, `--nowallshift`|
-| `--nopause` | Pause not enabled. |
-| `‑‑nohappyend` | Disables the better new ending and enables the original ending, where, after clearing the second wall, the player must lose all their balls before the game ends, which is somewhat depressing. In new, happy ending, the game ends when the last brick is destroyed, score and ball number stay on the screen. |
-| `‑‑noservelight` | Do not show "SERVE"-light. |
-| `‑‑nowallshift` | Do not shift brick wall 2 pixels right. 2 wall shift centers the wall, on original 1976 game it is not centered.|
-| `--bigpaddle` | Tired of how hard the game is? Try this 2 x wider paddle option. The game is still hard to play through, but it is more possible than with the tiny default paddle. |
-| `--mini` | The game shrunk 50% by width and height. Nice in window, for example. |
-| `‑‑notextoverlay` | Disable "PLAYER UP" and  "BALL IN PLAY" overlay texts. You can use real text overlay on your monitor. |
-| `--fullfps` | The game starts in full FPS mode. |
-| `--aiplay` | AI plays the game. Tip: you can use arrow keys or joystick (but not mouse) to make AI miss the ball. |
-| `‑‑nocolorstrips` <br> `‑‑nocolors` <br> `‑‑monochrome` <br> `‑‑mono` | No color strips, just black and white monitor. You can put real color strips on your monitor! |
-| `--greyscale` <br> `--grayscale`| Use greyscale palette. |
-| `--fontgap` | Move the single digits away from the wall. |
-| `--nobezel` | Do not use bezel art. You can use real bezel around your monitor, if you want. |
-| `--altbezel` | Use alternate bezel art. Cannot be used in fullscreen mode (which does not support bezels). |
-| `‑‑rainbowcolors` <br> `‑‑altcolors` | Swap the green and yellow colors so that the colors are in the order of the rainbow. |
+| `‑‑windowed` | Opens the game in a windowed mode. |
+| `--mini` | Scales the game display down to 50% width and height. Great for playing in a small window. |
+| `--nobezel` | Disables the digital artwork bezel. Perfect if you are using a real, physical cabinet bezel around your monitor! |
+| `--altbezel` | Uses alternative bezel art. *(Note: This cannot be used in fullscreen mode, which does not support bezels).* |
+| `‑‑nocolorstrips`<br>`‑‑nocolors`<br>`‑‑monochrome`<br>`--mono` | Disables the digital color overlay, reverting the game to a pure black-and-white monitor style. Ideal if you want to place real, physical colored plastic strips onto your physical monitor! |
+| `‑‑greyscale`<br>`‑‑grayscale` | Changes the color output to a classic greyscale palette. |
+| `‑‑rainbowcolors`<br>`--altcolors` | Swaps the default green and yellow brick rows so the entire wall accurately reflects the true color order of a rainbow. |
+| `‑‑notextoverlay` | Disables the "PLAYER UP" and "BALL IN PLAY" digital text overlays. Useful for setups utilizing physical text overlays on the display. |
+| `--fontgap` | Shifts the single-digit score characters slightly further away from the brick wall. |
+| `‑‑easyblink` | Reduces the blinking intensity of the score counter if the default arcade-accurate flashing bothers your eyes. |
 
-
-Sound scale options, default scale is major.
+### 🕹️ Gameplay & Physics Options
 
 | Option | Description |
 | :--- | :--- |
-| `--minor` | Minor scale. |
-| `--rock` | Rock scale. |
-| `--blues` | Blues scale. |
-| `--pentatonic or --penta` | Pentatonic scale. |
+| `‑‑authentic` | For true purists. Disables all modern gameplay enhancements and forces strict, 1976 TTL-hardware-faithful rules. This option automatically implies `‑‑nohappyend`, `‑‑noservelight`, and `‑‑nowallshift`. |
+| `--nopause` | Disables the ability to pause the game. |
+| `‑‑nohappyend` | Disables the modern "happy ending" feature. Reverts to the original 1976 arcade ending where, after clearing the second wall, the player must intentionally lose all remaining balls to end the game. *(The modern default happy ending gracefully finishes the game when the last brick dies, keeping your score on screen).* |
+| `‑‑noservelight` | Hides the "SERVE" indicator light on the screen. |
+| `‑‑nowallshift` | Disables the 2-pixel rightward shift of the brick wall. In the original 1976 arcade cabinet, the wall was slightly off-center. By default, Breakout-Pi centers the wall, but this flag restores the original off-center layout. |
+| `‑‑bigpaddle` | Doubles the width of your paddle. Perfect if you find the original 1976 difficulty brutal. The game remains challenging, but clearing the wall becomes much more achievable! |
+| `--fullfps` | Unlocks the frame rate, launching the game in full FPS mode. |
+| `--aiplay` | Enables the built-in AI bot to play the game automatically. *Tip: You can still use the arrow keys or a joystick (but not the mouse) to interfere and make the AI miss!* |
 
+### 🎵 Audio Scale Options
+By default, the game uses a **Major** musical scale for the brick collision sound effects. You can change the chromatic scale tuning with the following options:
+
+| Option | Description |
+| :--- | :--- |
+| `--minor` | Switches the audio triggers to a Minor musical scale. |
+| `--rock` | Switches the audio triggers to a Rock-oriented scale. |
+| `--blues` | Switches the audio triggers to a Blues scale. |
+| `--pentatonic`<br>`‑‑penta` | Switches the audio triggers to a Pentatonic scale. |
 
 ---
 
@@ -173,8 +180,10 @@ You can install this game into your RetroPie build either under the **Ports** me
    #!/bin/bash
    python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py
    ```
-
-   (You can add [command line options](#command-line-options) after breakout.py)
+   *Tip: You can append any [Command-Line Options](#command-line-options) directly to the end of the python3 command. For example, to enable the rainbow colors and blues audio scale, change the line to:*
+   ```bash
+   python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py --rainbowcolors --blues
+   ```
 
 
 4. **Make the script executable**:
@@ -198,12 +207,10 @@ If you prefer to have Breakout listed alongside your other classic arcade games,
    ```bash
    breakout-pi = "python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py"
    ```
-
-   If you want, you can add [command line options](#command-line-options) between **breakout.py** and **"** to the line you add, like this:
+   *If you want to customize the game, you can inject [Command-Line Options](#command-line-options) inside the quotation marks, right after **breakout.py**. For example:*
    ```bash
    breakout-pi = "python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py --altcolors --penta"
    ```
-   
 
 4. **Restart EmulationStation** (via Main Menu -> Quit -> Restart EmulationStation). A game named **breakout** will now appear under your *Arcade* system.
 

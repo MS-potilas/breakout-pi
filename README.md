@@ -72,7 +72,7 @@ Click on any image to view it in full resolution.
     </td>
   <tr>
     <td align="center" width="50%">
-      <b>Windowed, Rainbox Colors</b><br><tt>--altcolors</tt><br>
+      <b>Windowed, Rainbow Colors</b><br><tt>--altcolors</tt><br>
       <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/windowed-rainbowcolors.jpg"><img src="assets/windowed-rainbowcolors.jpg" width="50%" alt="Windowed, Rainbox Colors"></a>
     </td>
     <td align="center" width="50%">
@@ -132,11 +132,12 @@ You can customize the game mode and disable enhancements using the following fla
 | `‑‑notextoverlay` | Disable "PLAYER UP" and  "BALL IN PLAY" overlay texts. You can use real text overlay on your monitor. |
 | `--fullfps` | The game starts in full FPS mode. |
 | `--aiplay` | AI plays the game. Tip: you can use arrow keys or joystick (but not mouse) to make AI miss the ball. |
-| `‑‑nocolorstrips` or `‑‑nocolors` or `‑‑monochrome` or `‑‑mono` | No color strips, just black and white monitor. You can put real color strips on your monitor! |
+| `‑‑nocolorstrips` <br> `‑‑nocolors` <br> `‑‑monochrome` <br> `‑‑mono` | No color strips, just black and white monitor. You can put real color strips on your monitor! |
+| `--greyscale` <br> `--grayscale`| Use greyscale palette. |
 | `--fontgap` | Move the single digits away from the wall. |
 | `--nobezel` | Do not use bezel art. You can use real bezel around your monitor, if you want. |
 | `--altbezel` | Use alternate bezel art. Cannot be used in fullscreen mode (which does not support bezels). |
-| `‑‑rainbowcolors` or `‑‑altcolors` | Swap the green and yellow colors so that the colors are in the order of the rainbow. |
+| `‑‑rainbowcolors` <br> `‑‑altcolors` | Swap the green and yellow colors so that the colors are in the order of the rainbow. |
 
 
 Sound scale options, default scale is major.
@@ -198,7 +199,11 @@ If you prefer to have Breakout listed alongside your other classic arcade games,
    breakout-pi = "python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py"
    ```
 
-   (If you want, add [command line options](#command-line-options) between **breakout.py** and **"** to the line you add)
+   If you want, you can add [command line options](#command-line-options) between **breakout.py** and **"** to the line you add, like this:
+   ```bash
+   breakout-pi = "python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py --altcolors --penta"
+   ```
+   
 
 4. **Restart EmulationStation** (via Main Menu -> Quit -> Restart EmulationStation). A game named **breakout** will now appear under your *Arcade* system.
 

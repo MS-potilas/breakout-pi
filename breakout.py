@@ -76,6 +76,7 @@ mini = False
 nopause = False
 wallshift = 2           # move the wall 2 pixels right, so that it is better centered than in the original
 dotextoverlay = True    # display "PLAYER UP" and  "BALL IN PLAY" texts as overlay
+greyscale = False
 
 if '-bigpaddle ' in cmdline:
     PADDLE_WIDTH *= 2
@@ -192,12 +193,20 @@ RED = (198, 8, 0)
 ORANGE = (198, 130, 0)
 GREEN = (0, 198, 0)
 YELLOW = (198, 204, 0)
-ORANGE = (198, 130, 0)
 
 # better colors
 if '-altcolors ' in cmdline or '-rainbowcolors ' in cmdline:
     GREEN = (198, 204, 0)
     YELLOW = (0, 198, 0)
+    
+if '-greyscale ' in cmdline or '-grayscale ' in cmdline:
+    greyscale = True
+    BLUE = (128, 128, 128)
+    RED = (63, 63, 63)
+    ORANGE = (96, 96, 96)
+    GREEN = (144, 144, 144)
+    YELLOW = (192, 192, 192)
+    textoverlay = pygame.image.load(f"images/textoverlaybw.png")
 
 
 # game states:

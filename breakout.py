@@ -1,4 +1,4 @@
-import pygame, math, os, sys, random
+import pygame, math, os, sys, random, pickle
 import numpy as np
 
 # change working dir to same as the script's
@@ -75,7 +75,7 @@ nocolorstrips = False
 mini = False
 nopause = False
 wallshift = 2           # move the wall 2 pixels right, so that it is better centered than in the original
-dotextoverlay = True    # "display PLAYER UP" and  "BALL IN PLAY" texts as overlsy
+dotextoverlay = True    # display "PLAYER UP" and  "BALL IN PLAY" texts as overlay
 
 if '-bigpaddle ' in cmdline:
     PADDLE_WIDTH *= 2
@@ -247,14 +247,14 @@ player_data = {
 
 def start_new_game(two_player_mode):
     #resets all player data and starts a new game, either 1-player or two-player
-    global game_state, current_player, is_two_player
+    global game_state, current_player, is_two_player, player_data
     
     is_two_player = two_player_mode
     current_player = 1  # Peli alkaa aina Pelaajasta 1
     game_state = "PLAYING"
     
     # reset player's data
-    for p in range(1, 2):
+    for p in range(1, 3): # 3!
         player_data[p]["score"] = 0
         player_data[p]["lives"] = 3
         player_data[p]["current_wall"] = 1
@@ -262,7 +262,7 @@ def start_new_game(two_player_mode):
         player_data[p]["highest_row_hit"] = False
         player_data[p]["paddle_shrunk"] = False
         player_data[p]["bricks_state"] = []  # Tyhjä lista tarkoittaa, että luodaan täysi seinä
-
+        
     # restore original paddle size (in case it was shrunk)
     paddle.grow()
     
@@ -271,6 +271,42 @@ def start_new_game(two_player_mode):
     
     # reet ball and start serve delay
     reset_ball_with_serve_wait()
+
+
+def save_game_data():
+    global player_data, current_player, is_two_player
+    try:
+        save_current_player_bricks(current_player)
+        tallennettava_data = {
+            "player_data": player_data,
+            "current_player": current_player,
+            "is_two_player": is_two_player
+        }
+        # 2. Tallennetaan JSON-tiedostoon
+        with open(".breakout_dump.pkl", "wb") as tiedosto:
+            pickle.dump(tallennettava_data, tiedosto)
+    except:
+        pass
+
+def load_game_data():
+    global player_data, current_player, is_two_player
+    try:
+        with open(".breakout_dump.pkl", "rb") as tiedosto:
+            ladattu_data = pickle.load(tiedosto)
+
+        # Puretaan tiedot takaisin muuttujiin
+        player_data = ladattu_data["player_data"]
+        current_player = ladattu_data["current_player"]
+        is_two_player = ladattu_data["is_two_player"]
+        if not is_two_player:
+            current_player = 1
+        #if player_data[current_player]['score'] == 896:
+        #    player_data[current_player]["bricks_state"] = []            
+        if player_data[current_player]["bricks_state"] != []:
+            load_next_player_bricks(current_player)
+    except:
+        pass
+        
     
 
 def reset_to_attract():
@@ -283,6 +319,8 @@ def reset_to_attract():
     ball.rect.center = (GAME_WIDTH // 2, GAME_HEIGHT // 2)
     # reset ball speed
     ball.velocity = initial_ball_speed()
+    load_game_data()
+    
 
 def reset_ball_core():
     global serve_delay_timer
@@ -609,6 +647,7 @@ def handle_ball_lost():
             reset_ball_with_serve_wait()
             return
 
+    save_game_data()
     # Jos kummallakin (tai yksinpelaajalla) elämät loppuivat, peli menee esittelytilaan
     reset_to_attract()
 
@@ -1006,6 +1045,7 @@ def main():
                                 game_state = "ATTRACT"
                                 # make the ball go slower
                                 ball.velocity = [ball.velocity[0],  math.copysign(4, ball.velocity[0])]  # base speed 4
+                                save_game_data()
                         else:
                             # traditional end: do nothing, no happy end. all lives must be lost before game ends
                             pass

@@ -15,18 +15,36 @@ The game is designed to be highly faithful to its historic TTL predecessor, emul
 
 ## Features & Controls
 
-*   **Authentic Gameplay:** Faithfully replicates the original 1976 speed, angles, and score mechanics.
-*   **Modern Enhancements:** Subtle quality-of-life improvements (can be toggled off via CLI options).
-*   **Flexible Display:** Seamlessly switches between full-screen and windowed modes.
-*   **Controls:** 
-    *   **1, spacebar, mouse button, or joystick button:** Start a 1-player game.
-    *   **2:** Start a 2-player game.
-    *   **Spacebar, mouse button, or joystick button:** Launch ball
-    *   **Mouse / Keyboard (Arrow Keys):** Move the paddle left or right.
-    *   **Joystick:** Move the paddle left or right.
-    *   **P:** Pause the game (unless `--nopause` is used)
-    *   **F:** Toggle between Full FPS (game runs as fast as it can) and 60 FPS
-    *   **Esc:** Exit the game.
+### Authentic Gameplay, Flexible Display
+
+Faithfully replicates the original 1976 speed, angles, and score mechanics. Use full-screen or windowed modes (normal, mini) via CLI options.
+
+### Controls
+*   **1, spacebar, mouse button, or joystick button:** Start a 1-player game.
+*   **2:** Start a 2-player game.
+*   **Spacebar, mouse button, or joystick button:** Launch ball
+*   **Mouse / Keyboard (Arrow Keys):** Move the paddle left or right.
+*   **Joystick:** Move the paddle left or right.
+*   **P:** Pause the game (unless `--nopause` is used)
+*   **F:** Toggle between Full FPS (game runs as fast as it can) and 60 FPS
+*   **Esc:** Exit the game.
+
+### Modern Enhancements
+
+Subtle quality-of-life improvements (can be toggled off via CLI options).
+
+*   New Happy End (remove using `--nohappyend`)
+*   Mouse support
+*   Serve Light implementation, visually subtle
+*   Brick wall properly centered by moving the wall right by 2 pixels (remove using `--nowallshift`)
+*   Text overlay which explain the single digit numbers (remove using `--notextoverlay`)
+*   Sounds "tuned" to chromatic scale, default is major scale, but can be changed to minor, rock, blue, and pentatonic.
+*   Mini (shrunk) version of the game
+*   Paddle twice as wide as normal, if you wish.
+*   Alternate bezel composed from real arcade bezel artwork
+*   Full FPS Mode
+*   AI Play Mode
+*   Pause function (disable using `--nopause`)
 
 ## Screenshots
 
@@ -36,13 +54,33 @@ Click on any image to view it in full resolution.
   <tr>
     <td align="center" width="50%">
       <b>Full Screen, Default Bezel, Game Paused</b><br>
-      <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/full-screen.jpg"><img src="assets/full-screen.jpg" width="100%" alt="Full Screen with defau bezell"></a>
+      <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/full-screen.jpg"><img src="assets/full-screen.jpg" width="100%" alt="Full Screen with default bezel"></a>
     </td>
     <td align="center" width="50%">
       <b>Waiting for Serve (light is on)</b><br>
       <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/full-screen-waiting-for-serve.jpg"><img src="assets/full-screen-waiting-for-serve.jpg" width="100%" alt="Waiting for serve"></a>
     </td>
   </tr>
+  <tr>
+    <td align="center" width="50%">
+      <b>Full Screen, Alternate Bezel, Rainbow Colors</b><br><tt>--altbezel --altcolors</tt><br>
+      <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/full-screen-altbezel-rainbowcolors.jpg"><img src="assets/full-screen-altbezel-rainbowcolors.jpg" width="100%" alt="Full Screen, Alternate Bezel, Rainbow Colors"></a>
+    </td>
+    <td align="center" width="50%">
+      <b>Full Screen, No Bezel, No Overlay Tezt</b><br><tt>--nobezel --nooverlaytext</tt><br>
+      <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/full-screen-no-bezel-no-overlaytext-mono.jpg"><img src="assets/full-screen-no-bezel-no-overlaytext-mono.jpg" width="100%" alt="Full Screen, No Bezel, No Overlay Tezt"></a>
+    </td>
+  <tr>
+    <td align="center" width="50%">
+      <b>Windowed, Rainbox Colors</b><br><tt>--altcolors</tt><br>
+      <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/windowed-rainbowcolors.jpg"><img src="assets/windowed-rainbowcolors.jpg" width="50%" alt="Windowed, Rainbox Colors"></a>
+    </td>
+    <td align="center" width="50%">
+      <b>Windowed, Mini</b><br><tt>--mini</tt><br>
+      <a href="https://raw.githubusercontent.com/MS-potilas/breakout-pi/master/assets/windowed-mini.jpg"><img src="assets/windowed-mini.jpg" width="100%" alt="Windowed, Mini"></a>
+    </td>
+  </tr>
+
 </table>
 
 ## Installation & Running
@@ -91,12 +129,12 @@ You can customize the game mode and disable enhancements using the following fla
 | `‑‑nowallshift` | Do not shift brick wall 2 pixels right. 2 wall shift centers the wall, on original 1976 game it is not centered.|
 | `--bigpaddle` | Tired of how hard the game is? Try this 2 x wider paddle option. The game is still hard to play through, but it is more possible than with the tiny default paddle. |
 | `--mini` | The game shrunk 50% by width and height. Nice in window, for example. |
-| `‑‑notextoverlay` | Disable "PLAYER UP" and  "BALL IN PLAY" overlay texts |
+| `‑‑notextoverlay` | Disable "PLAYER UP" and  "BALL IN PLAY" overlay texts. You can use real text overlay on your monitor. |
 | `--fullfps` | The game starts in full FPS mode. |
 | `--aiplay` | AI plays the game. Tip: you can use arrow keys or joystick (but not mouse) to make AI miss the ball. |
-| `‑‑nocolorstrips` or `‑‑nocolors` or `‑‑monochrome` or `‑‑mono` | No color strips, just black and white monitor. |
+| `‑‑nocolorstrips` or `‑‑nocolors` or `‑‑monochrome` or `‑‑mono` | No color strips, just black and white monitor. You can put real color strips on your monitor! |
 | `--fontgap` | Move the single digits away from the wall. |
-| `--nobezel` | Do not use bezel art. |
+| `--nobezel` | Do not use bezel art. You can use real bezel around your monitor, if you want. |
 | `--altbezel` | Use alternate bezel art. Cannot be used in fullscreen mode (which does not support bezels). |
 | `‑‑rainbowcolors` or `‑‑altcolors` | Swap the green and yellow colors so that the colors are in the order of the rainbow. |
 
@@ -135,6 +173,9 @@ You can install this game into your RetroPie build either under the **Ports** me
    python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py
    ```
 
+   (You can add [command line options](#command-line-options) after breakout.py)
+
+
 4. **Make the script executable**:
    ```bash
    chmod +x ~/RetroPie/roms/ports/Breakout.sh
@@ -157,7 +198,7 @@ If you prefer to have Breakout listed alongside your other classic arcade games,
    breakout-pi = "python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py"
    ```
 
-   (Add any [command line options](#command-line-options) between **breakout.py** and **"** to the line you add)
+   (If you want, add [command line options](#command-line-options) between **breakout.py** and **"** to the line you add)
 
 4. **Restart EmulationStation** (via Main Menu -> Quit -> Restart EmulationStation). A game named **breakout** will now appear under your *Arcade* system.
 

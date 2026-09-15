@@ -138,14 +138,14 @@ You can completely customize your Breakout-Pi experience, tweak the visual style
 
 | Option | Description |
 | :--- | :--- |
-| `‑‑authentic` | For true purists. Disables all modern gameplay enhancements and forces strict, 1976 TTL-hardware-faithful rules. This option automatically implies `‑‑nohappyend`, `‑‑noservelight`, and `‑‑nowallshift`. |
+| `‑‑authentic` | For true purists. Disables all modern gameplay enhancements and forces strict, 1976 TTL-hardware-faithful rules. This option automatically implies `‑‑nohappyend`, `‑‑noservelight`, `--nopause`, and `‑‑nowallshift`. |
 | `--nopause` | Disables the ability to pause the game. |
 | `‑‑nohappyend` | Disables the modern "happy ending" feature. Reverts to the original 1976 arcade ending where, after clearing the second wall, the player must intentionally lose all remaining balls to end the game. *(The modern default happy ending gracefully finishes the game when the last brick dies, keeping your score and ball number on screen).* |
 | `‑‑noservelight` | Hides the "SERVE" indicator light on the screen. |
 | `‑‑nowallshift` | Disables the 2-pixel rightward shift of the brick wall. In the original 1976 arcade cabinet, the wall was slightly off-center. By default, Breakout-Pi centers the wall, but this flag restores the original off-center layout. |
 | `‑‑bigpaddle` | Doubles the width of your paddle. Perfect if you find the original 1976 difficulty brutal. The game remains challenging, but clearing the wall becomes much more achievable! |
 | `--fullfps` | Unlocks the frame rate, launching the game in full FPS mode. |
-| `--aiplay` | Enables the built-in AI bot to play the game automatically. *Tip: You can still use the arrow keys or a joystick (but not the mouse) to interfere and make the AI miss!* |
+| `--aiplay` | Enables the built-in AI bot to play the game automatically. You must serve the ball, AI only moves the paddle. *Tip: You can still use the arrow keys or a joystick (but not the mouse) to interfere and make the AI miss!* |
 
 ### 🎵 Audio Scale Options
 By default, the game uses a **Major** musical scale for the brick collision sound effects. You can change the chromatic scale tuning with the following options:

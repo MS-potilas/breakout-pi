@@ -1,5 +1,13 @@
-import pygame, math, os, sys, random, pickle
+import math, os, sys, random, pickle
 import numpy as np
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
+
+print(" = = = = = = = = = = = = = = = = = = = = = = = = = ")
+print(" =  Breakout-Pi for RetroPie by MS-potilas 2026  = ")
+print(" = = = = =  Made with Python and Pygame  = = = = = ")
+print(" =  https://github.com/MS-potilas/breakout-pi/   = ")
+print(" = = = = = = = = = = = = = = = = = = = = = = = = = ")
 
 # change working dir to same as the script's
 abspath_ = os.path.abspath(__file__)
@@ -125,7 +133,6 @@ if "-fontgap " in cmdline:
 
 
 if '-authentic ' in cmdline:
-    fontgap = False
     doservelight = False
     happyend = False
     nopause = True
@@ -805,10 +812,10 @@ def main():
                     paddle.rect.x += int(np.sign(distance) * AI_SPEED)
             # Prevent Paddle From Leaving Screen Boundaries
             # original let the paddle go a little bit inside the wall, so do we:
-            if paddle.rect.left < 0:            # WALL_WIDTH
-                paddle.rect.left = 0            # WALL_WIDTH
-            if paddle.rect.right > GAME_WIDTH:  # - WALL_WIDTH
-                paddle.rect.right = GAME_WIDTH  # - WALL_WIDTH
+            if paddle.rect.left < WALL_WIDTH // 2:
+                paddle.rect.left = WALL_WIDTH // 2
+            if paddle.rect.right > GAME_WIDTH - WALL_WIDTH // 2:
+                paddle.rect.right = GAME_WIDTH - WALL_WIDTH // 2
 
             # check, if serve delay timer is on
             if serve_delay_timer > 0:

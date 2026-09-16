@@ -143,6 +143,7 @@ if '-authentic ' in cmdline:
     nopause = True
     wallshift = 0
     authentic = True
+    soundscaleindex = 7
 
 
 if (is_windowing_system() and not "-fullscreen " in cmdline) or "-windowed " in cmdline:
@@ -239,7 +240,7 @@ serve_delay_timer = 0       # time when serve delay ends
 soundscale_visible = 0
 
 def initial_ball_speed():   # "initial horizontal speed is random" -service manual
-    return [random.choice([-4, -3, -2, 2, 3, 4]), 3]
+    return [random.choice([-4, -3, -2, 2, 3, 4]), 4]
 
 # serve delay "no loger than 4 seconds" (cut it down to 3) -service manual
 def get_serve_delay():
@@ -469,7 +470,7 @@ N_G5 = 783.99
 N_Ab5 = 830.60
 N_A5 = 880.0
 N_Bb5 = 932.33
-N_B5 = 1975.53
+N_B5 = 987.77
 
 
 N_C6 = 1046.5
@@ -511,6 +512,7 @@ soundscales = {
     'PENTATONIC': [sound_D5, sound_D5, sound_E5, sound_E5, sound_G5, sound_G5, sound_A5, sound_A5],
     'FULL MAJOR': [sound_C5, sound_D5, sound_E5, sound_F5, sound_G5, sound_A5, sound_B5, sound_C6],
     'RANDOM': [sound_C5, sound_Db5, sound_D5, sound_Eb5, sound_E5, sound_F5, sound_Gb5, sound_G5, sound_Ab5, sound_A5, sound_Bb5, sound_B5, sound_C6],
+    'MONOTONIC': [sound_E5, sound_E5, sound_E5, sound_E5, sound_E5, sound_E5, sound_E5, sound_E5],
 }
 
 soundscaleindex = 0
@@ -537,6 +539,9 @@ if '-fullscale ' in cmdline or '-fullmajor ' in cmdline:
 
 if '-random ' in cmdline or '-randomscale ' in cmdline:
     soundscaleindex = 6
+
+if '-monotonic ' in cmdline:
+    soundscaleindex = 7
 
 
 soundscale = list(soundscales)[soundscaleindex]
@@ -866,7 +871,7 @@ def main():
                 elif ball.rect.centery > GAME_HEIGHT * 0.40 and ball.velocity[1] > 0:
                     AI_SPEED = 8
                 elif ball.rect.centery > GAME_HEIGHT * 0.30:
-                    AI_SPEED = 2
+                    AI_SPEED = 3
                 else:
                     AI_SPEED = 0
                 if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] < 0:
@@ -983,14 +988,14 @@ def main():
                     player_data[current_player]["highest_row_hit"] = True
                 
                 # Standard TTL Speed Step calculation
-                # Base velocity is 3. We adjust the baseline dynamically:
-                base_y_speed = 3
+                # Base velocity is 4. We adjust the baseline dynamically:
+                base_y_speed = 4
                 if player_data[current_player]["hit_counter"] >= 4:
-                    base_y_speed = 5  # Intermediate speed 1
+                    base_y_speed = 6  # Intermediate speed 1
                 if player_data[current_player]["hit_counter"] >= 12:
-                    base_y_speed = 7  # Intermediate speed 2
+                    base_y_speed = 8  # Intermediate speed 2
                 if player_data[current_player]["highest_row_hit"]:
-                    base_y_speed = 9  # Maximum speed
+                    base_y_speed = 10  # Maximum speed
                 
 
                 # Apply the updated Y speed (preserving the current up/down direction)

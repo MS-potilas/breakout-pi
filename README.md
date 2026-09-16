@@ -4,47 +4,44 @@
 [![Module](https://img.shields.io/badge/module-pygame-brightgreen.svg?style=flat)](http://www.pygame.org/news.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)](LICENSE)
 
-
 ## About
 
 This project is a hardware-faithful Python and Pygame recreation of the original 1976 Atari **Breakout** arcade game. 
 
-It was developed specifically with **RetroPie** and the **Raspberry Pi 4** in mind. Since the Raspberry Pi 4 cannot emulate the original game's complex Transistor-Transistor Logic (TTL) circuits via traditional emulators like MAME, this Python implementation serves as a lightweight alternative to bring the authentic arcade experience to the system. While optimized for RetroPie, it can easily be run on any standard desktop environment (Linux, macOS, Windows) either in a window or full-screen mode.
+It was developed specifically with **RetroPie** and the **Raspberry Pi 4** in mind. Since the Raspberry Pi 4 cannot emulate the original game's complex Transistor-Transistor Logic (TTL) circuits via traditional emulators like MAME or DICE, this Python implementation serves as a lightweight alternative to bring the authentic arcade experience to the system. While optimized for RetroPie, it can easily be run on any standard desktop environment (Linux, macOS, Windows) either in a window or full-screen mode.
 
 The game is designed to be highly faithful to its historic TTL predecessor, emulating original physics, brick layouts, and ball mechanics. However, a few modern enhancements and gameplay improvements have been introduced. For purists, these enhancements can be disabled entirely using command-line options.
 
 ## Features & Controls
 
-### Authentic Gameplay, Flexible Display
+### 🎮 Authentic Gameplay & Flexible Display
+*   **Original Physics:** Faithfully replicates the original 1976 speed, angles, and scoring mechanics.
+*   **Display Modes:** Supports full-screen as well as windowed modes (including a 50% scaled-down mini view) via CLI flags.
+*   **Cabinet Bezels:** Full-screen mode supports two different decorative arcade-style bezels to surround the game display.
 
-Faithfully replicates the original 1976 speed, angles, and score mechanics. Use full-screen or windowed modes (normal, mini) via CLI options.
+### ✨ Modern Enhancements
+All quality-of-life enhancements can be customized or toggled off completely via command-line options:
 
-### Controls
-*   **1, spacebar, mouse button, or joystick button:** Start a 1-player game.
+*   **New Happy End:** The game finishes gracefully when the final brick is destroyed, leaving your score on screen (disable via `‑‑nohappyend`).
+*   **Tuned Audio Scales:** Collision sounds are tuned to a chromatic scale. The default is a Major scale, but it can be changed to Minor, Rock 'n' Roll, Blues, Pentatonic, Full Major (8 full notes for the 8 brick rows), or a chaotic Random mode (C6–C7 range).
+*   **Centered Brick Wall:** The brick wall is perfectly centered by shifting it 2 pixels to the right. The original 1976 cabinet left the wall slightly off-center (disable via `‑‑nowallshift`).
+*   **Text Overlays:** Informative overlays clarify what the single-digit numbers mean on the display (disable via `‑‑notextoverlay`).
+*   **Easy Blink Mode:** Significantly reduces the intensity of the flashing score counter if the arcade-accurate blinking bothers your eyes (enable via `‑‑easyblink`).
+*   **Big Paddle Mode:** Doubles the paddle width for a more forgiving, yet still challenging, experience (enable via `‑‑bigpaddle`).
+*   **Expanded Inputs:** Added native mouse, keyboard, and joystick/controller support.
+*   **Pause Function:** Ability to pause the action at any time (disable via `‑‑nopause`).
+*   **Full FPS Mode:** Allows unlocking the frame rate to run the game engine as fast as possible.
+*   **AI Play Mode:** Built-in bot that plays the game automatically.
+
+### ⌨️ Controls
+*   **1 / Spacebar / Mouse Button / Joystick Button:** Start a 1-player game.
 *   **2:** Start a 2-player game.
-*   **Spacebar, mouse button, or joystick button:** Launch ball
-*   **Mouse / Keyboard (Arrow Keys):** Move the paddle left or right.
-*   **Joystick:** Move the paddle left or right.
-*   **P:** Pause the game (unless `--nopause` is used)
-*   **F:** Toggle between Full FPS (game runs as fast as it can) and 60 FPS
+*   **Spacebar / Mouse Button / Joystick Button:** Launch the ball.
+*   **Mouse / Keyboard (Arrow Keys) / Joystick:** Move the paddle left or right.
+*   **P:** Pause the game (unless `‑‑nopause` is used).
+*   **S:** Switch to the next musical audio scale (**Shift + S** switches to the previous scale).
+*   **F:** Toggle between Full FPS mode and the standard 60 FPS lock.
 *   **Esc:** Exit the game.
-
-### Modern Enhancements
-
-Subtle quality-of-life improvements (can be toggled off via CLI options).
-
-*   New Happy End (remove using `--nohappyend`)
-*   Mouse support
-*   Serve Light implementation, visually subtle
-*   Brick wall properly centered by moving the wall right by 2 pixels (remove using `--nowallshift`)
-*   Text overlay which explain the single digit numbers (remove using `--notextoverlay`)
-*   Sounds "tuned" to chromatic scale, default is major scale, but can be changed to minor, rock, blue, and pentatonic.
-*   Mini (shrunk) version of the game
-*   Paddle twice as wide as normal, if you wish.
-*   Alternate bezel composed from real arcade bezel artwork
-*   Full FPS Mode
-*   AI Play Mode
-*   Pause function (disable using `--nopause`)
 
 ## Screenshots
 
@@ -138,14 +135,14 @@ You can completely customize your Breakout-Pi experience, tweak the visual style
 
 | Option | Description |
 | :--- | :--- |
-| `‑‑authentic` | For true purists. Disables all modern gameplay enhancements and forces strict, 1976 TTL-hardware-faithful rules. This option automatically implies `‑‑nohappyend`, `‑‑noservelight`, `--nopause`, and `‑‑nowallshift`. |
+| `‑‑authentic` | For true purists. Disables all modern gameplay enhancements and forces strict, 1976 TTL-hardware-faithful rules. This option automatically implies `‑‑nohappyend`, `‑‑noservelight`, `--nopause`, `--noscaleselection`, and `‑‑nowallshift`. |
 | `--nopause` | Disables the ability to pause the game. |
 | `‑‑nohappyend` | Disables the modern "happy ending" feature. Reverts to the original 1976 arcade ending where, after clearing the second wall, the player must intentionally lose all remaining balls to end the game. *(The modern default happy ending gracefully finishes the game when the last brick dies, keeping your score and ball number on screen).* |
 | `‑‑noservelight` | Hides the "SERVE" indicator light on the screen. |
 | `‑‑nowallshift` | Disables the 2-pixel rightward shift of the brick wall. In the original 1976 arcade cabinet, the wall was slightly off-center. By default, Breakout-Pi centers the wall, but this flag restores the original off-center layout. |
 | `‑‑bigpaddle` | Doubles the width of your paddle. Perfect if you find the original 1976 difficulty brutal. The game remains challenging, but clearing the wall becomes much more achievable! |
 | `--fullfps` | Unlocks the frame rate, launching the game in full FPS mode. |
-| `--aiplay` | Enables the built-in AI bot to play the game automatically. You must serve the ball, AI only moves the paddle. *Tip: You can still use the arrow keys or a joystick (but not the mouse) to interfere and make the AI miss!* |
+| `--aiplay` | Enables the built-in AI bot to play the game automatically. You must serve the ball, AI only moves the paddle. Because Ai tries to be imperfect, it sometimes misses the ball. *Tip: You can use the arrow keys or a joystick (but not the mouse) to interfere and make the AI miss!* |
 
 ### 🎵 Audio Scale Options
 By default, the game uses a **Major** musical scale for the brick collision sound effects. You can change the chromatic scale tuning with the following options:
@@ -153,9 +150,12 @@ By default, the game uses a **Major** musical scale for the brick collision soun
 | Option | Description |
 | :--- | :--- |
 | `--minor` | Switches the audio triggers to a Minor musical scale. |
-| `--rock` | Switches the audio triggers to a Rock-oriented scale. |
+| `--rock` | Switches the audio triggers to a Rock'n'Roll-oriented scale. |
 | `--blues` | Switches the audio triggers to a Blues scale. |
 | `--pentatonic`<br>`‑‑penta` | Switches the audio triggers to a Pentatonic scale. |
+| `‑‑fullscale`<br>`‑‑fullmajor` | Switches the audio triggers to a full Major scale (all brick rows have different note). Try this! |
+| `--random`<br>`‑‑randomscale` | Switches the audio triggers to a random scale. |
+| `‑‑noscaleswitch` | Disable sound scale switching from keyboard (S key). |
 
 ---
 
@@ -209,7 +209,7 @@ If you prefer to have Breakout listed alongside your other classic arcade games,
    ```
    *If you want to customize the game, you can inject [Command-Line Options](#command-line-options) inside the quotation marks, right after **breakout.py**. For example:*
    ```bash
-   breakout-pi = "python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py --altcolors --penta"
+   breakout-pi = "python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py --altcolors --fullscale"
    ```
 
 4. **Restart EmulationStation** (via Main Menu -> Quit -> Restart EmulationStation). A game named **breakout** will now appear under your *Arcade* system.

@@ -90,6 +90,8 @@ wallshift = 2           # move the wall 2 pixels right, so that it is better cen
 dotextoverlay = True    # display "PLAYER UP" and  "BALL IN PLAY" texts as overlay
 greyscale = False
 easyblink = False
+noscaleswitch = False
+authentic = False
 
 if '-easyblink ' in cmdline:
     easyblink = True
@@ -99,6 +101,10 @@ if '-bigpaddle ' in cmdline:
 
 if '-mini ' in cmdline:
     mini = True
+
+if '-noscaleswitch ' in cmdline:
+    noscaleswitch = True
+
 
 if '-notextoverlay ' in cmdline:
     dotextoverlay = False
@@ -137,6 +143,7 @@ if '-authentic ' in cmdline:
     happyend = False
     nopause = True
     wallshift = 0
+    authentic = True
 
 
 if (is_windowing_system() and not "-fullscreen " in cmdline) or "-windowed " in cmdline:
@@ -230,6 +237,8 @@ current_player = 1
 waiting_for_serve = True
 serve_delay_timer = 0       # time when serve delay ends
 
+soundscale_visible = 0
+
 def initial_ball_speed():   # "initial horizontal speed is random" -service manual
     return [random.choice([-4, -3, -2, 2, 3, 4]), 4]
 
@@ -261,7 +270,9 @@ player_data = {
 
 #resets all player data and starts a new game, either 1-player or two-player
 def start_new_game(two_player_mode):
-    global game_state, current_player, is_two_player, player_data
+    global game_state, current_player, is_two_player, player_data, soundscale_visible
+
+    #soundscale_visible = pygame.time.get_ticks() + 1500
     
     is_two_player = two_player_mode
     current_player = 1  # Player 1 always starts the game
@@ -369,24 +380,38 @@ GLYPHS = {
     '7': ["111", "001", "001", "001", "001", "001", "001"],
     '8': ["111", "101", "101", "111", "101", "101", "111"],
     '9': ["111", "101", "101", "111", "001", "001", "111"],
-    'S': ["111", "100", "100", "111", "001", "001", "111"],
-    'E': ["111", "100", "100", "111", "100", "100", "111"],
-    'R': ["110", "101", "101", "110", "101", "101", "101"],
-    'V': ["101", "101", "101", "101", "101", "111", "010"],
-    'P': ["110", "101", "101", "110", "100", "100", "100"],
     'A': ["010", "101", "101", "111", "101", "101", "101"],
-    'U': ["101", "101", "101", "101", "101", "101", "111"],
-    'S': ["111", "100", "100", "111", "001", "001", "111"],
+    'B': ["110", "101", "101", "110", "101", "101", "110"],
+    'C': ["111", "100", "100", "100", "100", "100", "111"],
     'D': ["110", "101", "101", "101", "101", "101", "110"],
+    'E': ["111", "100", "100", "111", "100", "100", "111"],
+    'F': ["111", "100", "100", "111", "100", "100", "100"],
+    'I': ["010", "010", "010", "010", "010", "010", "010"],
+    'J': ["001", "001", "001", "001", "001", "001", "111"],
+    'K': ["101", "101", "110", "100", "110", "101", "101"],
+    'L': ["100", "100", "100", "100", "100", "100", "111"],
+    'M': ["101", "111", "111", "111", "101", "101", "101"],
+    'N': ["101", "101", "111", "111", "111", "101", "101"],
+    'O': ["111", "101", "101", "101", "101", "101", "111"],
+    'P': ["110", "101", "101", "110", "100", "100", "100"],
+    'R': ["110", "101", "101", "110", "101", "101", "101"],
+    'S': ["111", "100", "100", "111", "001", "001", "111"],
+    'T': ["111", "010", "010", "010", "010", "010", "010"],
+    'U': ["101", "101", "101", "101", "101", "101", "111"],
+    'V': ["101", "101", "101", "101", "101", "111", "010"],
+    ':': ["000", "000", "010", "000", "000", "010", "000"],
+    ' ': ["000", "000", "000", "000", "000", "000", "000"],
 }
 
-def draw_retro_glyphs(surface, score_str, start_x, start_y, block_size=4, color=GREY):
+def draw_retro_glyphs(surface, score_str, start_x, start_y, block_size=4, color=GREY, centerx=False):
     """
     Draws a blocky 1976 arcade-accurate numbers and some characters.
     block_size = width/height of a single pixel segment within the digit.
     """
     current_x = start_x
     block_size_y = round(block_size * 0.74)
+    if centerx:
+        current_x -= (4 * block_size * len(score_str)) // 2
     
     # Process each digit in the score string left-to-right
     for char in score_str:
@@ -434,6 +459,7 @@ def generate_square_wave(frequency, duration_secs=0.05, volume=0.3):
 N_C5 = 523.25
 N_Bb5 = 932.33
 N_C6 = 1046.5
+N_Db6 = 1108.73
 N_D6 = 1174.66
 N_Eb6 = 1244.51
 N_E6 = 1318.51
@@ -443,33 +469,63 @@ N_G6 = 1569.98
 N_Ab6 = 1661.22
 N_A6 = 1760.9
 N_Bb6 = 1864.66
+N_B6 = 1975.53
+N_C7 = 2093.0
 
-# 1976 arcade frequencies
-# dur'ish (major)
-beeps = [N_C5, N_C6, N_E6, N_F6, N_G6, N_A6]
+sound_wall = generate_square_wave(N_C5, duration_secs=0.03)        
+sound_paddle = generate_square_wave(N_C6, duration_secs=0.04)      
 
-# blues'ish
-if '-blues ' in cmdline:
-    beeps = [N_C5, N_C6, N_Eb6, N_G6, N_A6, N_Bb6]
+sound_C6 = generate_square_wave(N_C6, duration_secs=0.02)
+sound_Db6 = generate_square_wave(N_Db6, duration_secs=0.02)
+sound_D6 = generate_square_wave(N_D6, duration_secs=0.02)
+sound_Eb6 = generate_square_wave(N_Eb6, duration_secs=0.02)
+sound_E6 = generate_square_wave(N_E6, duration_secs=0.02)
+sound_F6 = generate_square_wave(N_F6, duration_secs=0.02)
+sound_Gb6 = generate_square_wave(N_Gb6, duration_secs=0.02)
+sound_G6 = generate_square_wave(N_G6, duration_secs=0.02)
+sound_Ab6 = generate_square_wave(N_Ab6, duration_secs=0.02)
+sound_A6 = generate_square_wave(N_A6, duration_secs=0.02)
+sound_Bb6 = generate_square_wave(N_Bb6, duration_secs=0.02)
+sound_B6 = generate_square_wave(N_B6, duration_secs=0.02)
+sound_C7 = generate_square_wave(N_C7, duration_secs=0.02)
+
+soundscales = {
+    'MAJOR': [sound_E6, sound_E6, sound_F6, sound_F6, sound_G6, sound_G6, sound_A6, sound_A6],
+    'MINOR': [sound_Eb6, sound_Eb6, sound_F6, sound_F6, sound_G6, sound_G6, sound_A6, sound_A6],
+    'ROCK': [sound_E6, sound_E6, sound_G6, sound_G6, sound_A6, sound_A6, sound_Bb6, sound_Bb6],
+    'BLUES': [sound_Eb6, sound_Eb6, sound_G6, sound_G6, sound_A6, sound_A6, sound_Bb6, sound_Bb6],
+    'PENTATONIC': [sound_D6, sound_D6, sound_E6, sound_E6, sound_G6, sound_G6, sound_A6, sound_A6],
+    'FULL MAJOR': [sound_C6, sound_D6, sound_E6, sound_F6, sound_G6, sound_A6, sound_B6, sound_C7],
+    'RANDOM': [sound_C6, sound_Db6, sound_D6, sound_Eb6, sound_E6, sound_F6, sound_Gb6, sound_G6, sound_Ab6, sound_A6, sound_Bb6, sound_B6, sound_C7],
+}
+
+soundscaleindex = 0
 
 # moll'ish (minor)
 if '-minor ' in cmdline:
-    beeps = [N_C5, N_C6, N_Eb6, N_F6, N_G6, N_A6]
-
-# pentatonic
-if '-penta ' in cmdline or '-pentatonic ' in cmdline:
-    beeps = [N_C5, N_C6, N_D6, N_E6, N_G6, N_A6]
+    soundscaleindex = 1
 
 # rock'ish
 if '-rock ' in cmdline:
-    beeps = [N_C5, N_C6, N_E6, N_G6, N_A6, N_Bb6]
+    soundscaleindex = 2
 
-sound_wall = generate_square_wave(beeps[0], duration_secs=0.03)        
-sound_paddle = generate_square_wave(beeps[1], duration_secs=0.04)      
-sound_brick_yellow = generate_square_wave(beeps[2], duration_secs=0.02)
-sound_brick_green = generate_square_wave(beeps[3], duration_secs=0.02) 
-sound_brick_orange = generate_square_wave(beeps[4], duration_secs=0.02)
-sound_brick_red = generate_square_wave(beeps[5], duration_secs=0.02)   
+# blues'ish
+if '-blues ' in cmdline:
+    soundscaleindex = 3
+
+# pentatonic
+if '-penta ' in cmdline or '-pentatonic ' in cmdline:
+    soundscaleindex = 4
+
+# pentatonic
+if '-fullscale ' in cmdline or '-fullmajor ' in cmdline:
+    soundscaleindex = 5
+
+if '-random ' in cmdline or '-randomscale ' in cmdline:
+    soundscaleindex = 6
+
+
+soundscale = list(soundscales)[soundscaleindex]
 
 
 class Brick(pygame.sprite.Sprite):
@@ -681,7 +737,7 @@ if not aiplay:
 
 
 def main():
-    global game_state, all_bricks, serve_delay_timer, waiting_for_serve, fullfps
+    global game_state, all_bricks, serve_delay_timer, waiting_for_serve, fullfps, soundscale, soundscaleindex, soundscale_visible
 
     sfx_channel = pygame.mixer.Channel(0) 
     joysticks = Joystick()
@@ -727,6 +783,12 @@ def main():
                     paused = False
                 elif not nopause and game_state == "PLAYING":
                     paused = True
+                    
+            # switch to next sound scale
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_s and not noscaleswitch:
+                soundscaleindex = (soundscaleindex + (1 if not (pygame.key.get_mods() & pygame.KMOD_SHIFT) else -1)) % len(list(soundscales))
+                soundscale = list(soundscales)[soundscaleindex]
+                soundscale_visible = pygame.time.get_ticks() + 900
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
                 fullfps = not fullfps
@@ -877,99 +939,95 @@ def main():
                         sfx_channel.play(sound_paddle)
             if game_state == 'ATTRACT':
                 if ball.rect.top >= GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 16:
-                    ball.velocity[1] = -abs(ball.velocity[1])                
-                    ball.velocity[0] = math.copysign(random.randint(3,4), ball.velocity[0])
+                    ball.velocity[1] = -abs(ball.velocity[1])
+                    if not authentic:
+                        # vary the x-velocity a bit so that attract mode bouncing is little more interesting
+                        # subtle variation
+                        ball.velocity[0] = math.copysign(random.randint(2,4), ball.velocity[0])
                     if game_state == 'PLAYING':
                         sfx_channel.play(sound_paddle)
 
+            # find the biggest collider
+            csize = 0
+            collision_count = 0
+            brick = None
+            for b in all_bricks:
+                if ball.rect.colliderect(b.rect):
+                    collision_count += 1
+                    ccsize = b.rect.clip(ball.rect).width * b.rect.clip(ball.rect).height
+                    if ccsize > csize:
+                        brick = b
+                        #if csize:
+                        #    print(f"bigger brick collision! {ccsize}>{csize}")
+                        csize = ccsize
             collision_detected = False
-
-            #for brick in all_bricks:
-            for idx,brick in enumerate(all_bricks):
-                if ball.rect.colliderect(brick.rect):
-                    # count the collisions and find biggest collision
-                    csize = brick.rect.clip(ball.rect).width * brick.rect.clip(ball.rect).height
-                    collision_count = 0
-                    for b in all_bricks:
-                        if ball.rect.colliderect(b.rect):
-                            collision_count += 1
-                            ccsize = b.rect.clip(ball.rect).width * b.rect.clip(ball.rect).height
-                            if ccsize > csize:
-                                brick = b
-                                #print(f"bigger brick collision! {ccsize}>{csize}")
-                                csize = ccsize
-                    if game_state == 'PLAYING':
-                        player_data[current_player]["score"] += brick.point_value
-                        player_data[current_player]["hit_counter"] += 1
-                        
-                    # Check row color for speed-up or paddle shrink
-                    # (Assuming brick.color holds the color tuple or name)
-                    if brick.color == RED or brick.color == ORANGE:
-                        player_data[current_player]["highest_row_hit"] = True
-                        
-                    if brick.color == RED and not player_data[current_player]["paddle_shrunk"]:
-                        player_data[current_player]["paddle_shrunk"] = True
-                        # Halve the paddle width
-                        paddle.shrink()
+            if collision_count:
+                if game_state == 'PLAYING':
+                    player_data[current_player]["score"] += brick.point_value
+                    player_data[current_player]["hit_counter"] += 1
                     
-                    # Standard TTL Speed Step calculation
-                    # Base velocity is 4. We adjust the baseline dynamically:
-                    base_y_speed = 4
-                    if player_data[current_player]["hit_counter"] >= 4:
-                        base_y_speed = 5  # Intermediate speed 1
-                    if player_data[current_player]["hit_counter"] >= 12:
-                        base_y_speed = 6  # Intermediate speed 2
-                    if player_data[current_player]["highest_row_hit"]:
-                        base_y_speed = 7  # Maximum speed
+                # Check row color for speed-up or paddle shrink
+                # (Assuming brick.color holds the color tuple or name)
+                if brick.color == RED or brick.color == ORANGE:
+                    player_data[current_player]["highest_row_hit"] = True
+                    
+                if brick.color == RED and not player_data[current_player]["paddle_shrunk"]:
+                    player_data[current_player]["paddle_shrunk"] = True
+                    # Halve the paddle width
+                    paddle.shrink()
+                
+                # Standard TTL Speed Step calculation
+                # Base velocity is 4. We adjust the baseline dynamically:
+                base_y_speed = 4
+                if player_data[current_player]["hit_counter"] >= 4:
+                    base_y_speed = 5  # Intermediate speed 1
+                if player_data[current_player]["hit_counter"] >= 12:
+                    base_y_speed = 6  # Intermediate speed 2
+                if player_data[current_player]["highest_row_hit"]:
+                    base_y_speed = 7  # Maximum speed
 
-                    # Apply the updated Y speed (preserving the current up/down direction)
-                    if ball.velocity[1] > 0:
-                        ball.velocity[1] = base_y_speed
-                    else:
-                        ball.velocity[1] = -base_y_speed
+                # Apply the updated Y speed (preserving the current up/down direction)
+                if ball.velocity[1] > 0:
+                    ball.velocity[1] = base_y_speed
+                else:
+                    ball.velocity[1] = -base_y_speed
 
-                    # Handle standard bounce axis inversion
-                    overlap_x = min(ball.rect.right, brick.rect.right) - max(ball.rect.left, brick.rect.left)
-                    overlap_y = min(ball.rect.bottom, brick.rect.bottom) - max(ball.rect.top, brick.rect.top)
+                # Handle standard bounce axis inversion
+                overlap_x = min(ball.rect.right, brick.rect.right) - max(ball.rect.left, brick.rect.left)
+                overlap_y = min(ball.rect.bottom, brick.rect.bottom) - max(ball.rect.top, brick.rect.top)
 
-                    # if we're hitting more than one brick, just back off!
-                    if collision_count > 1:
+                # if we're hitting more than one brick, just back off!
+                if collision_count > 1:
+                    ball.velocity[0] *= -1
+                    ball.velocity[1] *= -1
+                elif overlap_x < overlap_y:
+                    # --- side hit ---
+                    # reverse direction only if ball is moving towards brick
+                    if (ball.velocity[0] > 0 and ball.rect.centerx < brick.rect.centerx) or \
+                       (ball.velocity[0] < 0 and ball.rect.centerx > brick.rect.centerx):
                         ball.velocity[0] *= -1
+                else:
+                    # --- top/bottom hit ---
+                    # reverse direction only if ball is moving towards brick
+                    if (ball.velocity[1] > 0 and ball.rect.centery < brick.rect.centery) or \
+                       (ball.velocity[1] < 0 and ball.rect.centery > brick.rect.centery):
                         ball.velocity[1] *= -1
-                    elif overlap_x < overlap_y:
-                        # --- side hit ---
-                        # reverse direction only if ball is moving towards brick
-                        if (ball.velocity[0] > 0 and ball.rect.centerx < brick.rect.centerx) or \
-                           (ball.velocity[0] < 0 and ball.rect.centerx > brick.rect.centerx):
-                            ball.velocity[0] *= -1
+                    # if in attract mode, push the ball a bit away from the brick
+                    if game_state == "ATTRACT":
+                        if ball.velocity[1] > 0:
+                            ball.rect.top = brick.rect.bottom
+                        else:
+                            ball.rect.bottom = brick.rect.top
+                
+                # Trigger the correct pitch based on the point tier
+                if game_state == 'PLAYING':
+                    pitch = 7 - brick.row
+                    if soundscaleindex == 6: # RANDOM
+                        sfx_channel.play(random.choice(soundscales[soundscale]))
                     else:
-                        # --- top/bottom hit ---
-                        # reverse direction only if ball is moving towards brick
-                        if (ball.velocity[1] > 0 and ball.rect.centery < brick.rect.centery) or \
-                           (ball.velocity[1] < 0 and ball.rect.centery > brick.rect.centery):
-                            ball.velocity[1] *= -1
-                        # if in attract mode, push the ball a bit away from the brick
-                        if game_state == "ATTRACT":
-                            if ball.velocity[1] > 0:
-                                ball.rect.top = brick.rect.bottom
-                            else:
-                                ball.rect.bottom = brick.rect.top
-                    
-                    # Trigger the correct pitch based on the point tier
-                    if game_state == 'PLAYING':
-                        if brick.point_value == 1:
-                            sfx_channel.play(sound_brick_yellow)
-                        elif brick.point_value == 3:
-                            sfx_channel.play(sound_brick_green)
-                        elif brick.point_value == 5:
-                            sfx_channel.play(sound_brick_orange)
-                        elif brick.point_value == 7:
-                            sfx_channel.play(sound_brick_red)
-                    
-                    if game_state == 'PLAYING':
-                        brick.kill()
-                        collision_detected = True
-                    break
+                        sfx_channel.play(soundscales[soundscale][pitch])
+                    brick.kill()
+                    collision_detected = True
 
             if collision_detected:
                 if len(all_bricks) == 0:
@@ -1093,9 +1151,14 @@ def main():
         if paused:
             draw_retro_glyphs(screen, "PAUSED", WALL_WIDTH + 6, TOP_OFFSET+9, 4, color=BLACK if nocolorstrips else RED)
 
+        if soundscale_visible:
+            if not authentic:
+                draw_retro_glyphs(screen, "SOUNDSCALE: "+soundscale, GAME_WIDTH // 2, TOP_OFFSET+9, 4, color=BLACK if nocolorstrips else BLUE, centerx = True)
+            if current_time >= soundscale_visible:
+                soundscale_visible = 0
+
         if dotextoverlay:
             screen.blit(textoverlay, (WALL_WIDTH + 46, TOP_OFFSET + 83))
-
 
         WIN_W, WIN_H = dascreen.get_size()
         GAME_W = GAME_WIDTH

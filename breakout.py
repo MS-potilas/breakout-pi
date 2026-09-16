@@ -29,7 +29,6 @@ display_info = pygame.display.Info()
 FULL_SCREEN_W = display_info.current_w
 FULL_SCREEN_H = display_info.current_h
 
-
 FPS = 60
 
 GAME_WIDTH = 690
@@ -44,8 +43,8 @@ TOP_OFFSET = 94
 WINDOW_W = 690
 WINDOW_H = 1080
 
-PADDLE_WIDTH = 46
-PADDLE_HEIGHT = 19
+PADDLE_WIDTH = 46       # <= 42+6   basically like brick (smaller gap)
+PADDLE_HEIGHT = 18      # <= 13 + 5
 
 PADDLE_SPEED = 10
 
@@ -240,7 +239,7 @@ serve_delay_timer = 0       # time when serve delay ends
 soundscale_visible = 0
 
 def initial_ball_speed():   # "initial horizontal speed is random" -service manual
-    return [random.choice([-4, -3, -2, 2, 3, 4]), 4]
+    return [random.choice([-4, -3, -2, 2, 3, 4]), 3]
 
 # serve delay "no loger than 4 seconds" (cut it down to 3) -service manual
 def get_serve_delay():
@@ -349,7 +348,7 @@ def reset_to_attract():
     
 
 def reset_ball_core():
-    global serve_delay_timer
+    global serve_delay_timer, paddle
     
     ball.rect.center = ball_initial_position()
     ball.velocity = [0, 0]  # ball does not move first
@@ -357,6 +356,9 @@ def reset_ball_core():
     # Nollataan osumalaskurit
     player_data[current_player]["hit_counter"] = 0
     player_data[current_player]["highest_row_hit"] = False
+    paddle.grow()
+    player_data[current_player]["paddle_shrunk"] = False
+    
     
     serve_delay_timer = 0
 
@@ -454,10 +456,22 @@ def generate_square_wave(frequency, duration_secs=0.05, volume=0.3):
     # Return as a Pygame Sound object
     return pygame.mixer.Sound(buffer=wave)
 
-
 # note frequencies
 N_C5 = 523.25
+
+N_Db5 = 554.37
+N_D5 = 587.33
+N_Eb5 = 622.25
+N_E5 = 659.26
+N_F5 = 698.46
+N_Gb5 = 749.99
+N_G5 = 783.99
+N_Ab5 = 830.60
+N_A5 = 880.0
 N_Bb5 = 932.33
+N_B5 = 1975.53
+
+
 N_C6 = 1046.5
 N_Db6 = 1108.73
 N_D6 = 1174.66
@@ -472,31 +486,31 @@ N_Bb6 = 1864.66
 N_B6 = 1975.53
 N_C7 = 2093.0
 
-sound_wall = generate_square_wave(N_C5, duration_secs=0.03)        
-sound_paddle = generate_square_wave(N_C6, duration_secs=0.04)      
+sound_wall = generate_square_wave(N_C5, duration_secs=0.015)        
+sound_paddle = generate_square_wave(N_C6, duration_secs=0.02)      
 
-sound_C6 = generate_square_wave(N_C6, duration_secs=0.02)
-sound_Db6 = generate_square_wave(N_Db6, duration_secs=0.02)
-sound_D6 = generate_square_wave(N_D6, duration_secs=0.02)
-sound_Eb6 = generate_square_wave(N_Eb6, duration_secs=0.02)
-sound_E6 = generate_square_wave(N_E6, duration_secs=0.02)
-sound_F6 = generate_square_wave(N_F6, duration_secs=0.02)
-sound_Gb6 = generate_square_wave(N_Gb6, duration_secs=0.02)
-sound_G6 = generate_square_wave(N_G6, duration_secs=0.02)
-sound_Ab6 = generate_square_wave(N_Ab6, duration_secs=0.02)
-sound_A6 = generate_square_wave(N_A6, duration_secs=0.02)
-sound_Bb6 = generate_square_wave(N_Bb6, duration_secs=0.02)
-sound_B6 = generate_square_wave(N_B6, duration_secs=0.02)
-sound_C7 = generate_square_wave(N_C7, duration_secs=0.02)
+sound_C5 = generate_square_wave(N_C5, duration_secs=0.01)
+sound_Db5 = generate_square_wave(N_Db5, duration_secs=0.01)
+sound_D5 = generate_square_wave(N_D5, duration_secs=0.01)
+sound_Eb5 = generate_square_wave(N_Eb5, duration_secs=0.01)
+sound_E5 = generate_square_wave(N_E5, duration_secs=0.01)
+sound_F5 = generate_square_wave(N_F5, duration_secs=0.01)
+sound_Gb5 = generate_square_wave(N_Gb5, duration_secs=0.01)
+sound_G5 = generate_square_wave(N_G5, duration_secs=0.01)
+sound_Ab5 = generate_square_wave(N_Ab5, duration_secs=0.01)
+sound_A5 = generate_square_wave(N_A5, duration_secs=0.01)
+sound_Bb5 = generate_square_wave(N_Bb5, duration_secs=0.01)
+sound_B5 = generate_square_wave(N_B5, duration_secs=0.01)
+sound_C6 = generate_square_wave(N_C6, duration_secs=0.01)
 
 soundscales = {
-    'MAJOR': [sound_E6, sound_E6, sound_F6, sound_F6, sound_G6, sound_G6, sound_A6, sound_A6],
-    'MINOR': [sound_Eb6, sound_Eb6, sound_F6, sound_F6, sound_G6, sound_G6, sound_A6, sound_A6],
-    'ROCK': [sound_E6, sound_E6, sound_G6, sound_G6, sound_A6, sound_A6, sound_Bb6, sound_Bb6],
-    'BLUES': [sound_Eb6, sound_Eb6, sound_G6, sound_G6, sound_A6, sound_A6, sound_Bb6, sound_Bb6],
-    'PENTATONIC': [sound_D6, sound_D6, sound_E6, sound_E6, sound_G6, sound_G6, sound_A6, sound_A6],
-    'FULL MAJOR': [sound_C6, sound_D6, sound_E6, sound_F6, sound_G6, sound_A6, sound_B6, sound_C7],
-    'RANDOM': [sound_C6, sound_Db6, sound_D6, sound_Eb6, sound_E6, sound_F6, sound_Gb6, sound_G6, sound_Ab6, sound_A6, sound_Bb6, sound_B6, sound_C7],
+    'MAJOR': [sound_E5, sound_E5, sound_F5, sound_F5, sound_G5, sound_G5, sound_A5, sound_A5],
+    'MINOR': [sound_Eb5, sound_Eb5, sound_F5, sound_F5, sound_G5, sound_G5, sound_A5, sound_A5],
+    'ROCK': [sound_E5, sound_E5, sound_G5, sound_G5, sound_A5, sound_A5, sound_Bb5, sound_Bb5],
+    'BLUES': [sound_Eb5, sound_Eb5, sound_G5, sound_G5, sound_A5, sound_A5, sound_Bb5, sound_Bb5],
+    'PENTATONIC': [sound_D5, sound_D5, sound_E5, sound_E5, sound_G5, sound_G5, sound_A5, sound_A5],
+    'FULL MAJOR': [sound_C5, sound_D5, sound_E5, sound_F5, sound_G5, sound_A5, sound_B5, sound_C6],
+    'RANDOM': [sound_C5, sound_Db5, sound_D5, sound_Eb5, sound_E5, sound_F5, sound_Gb5, sound_G5, sound_Ab5, sound_A5, sound_Bb5, sound_B5, sound_C6],
 }
 
 soundscaleindex = 0
@@ -691,10 +705,6 @@ def handle_ball_lost():
             load_next_player_bricks(current_player)
             
             # restore paddle state
-            if player_data[current_player]["paddle_shrunk"]:
-                paddle.shrink()
-            else:
-                paddle.grow()
             reset_ball_with_serve_wait()
             return
             
@@ -851,16 +861,12 @@ def main():
                     paddle.rect.x += mouse_dx
                     
             if (game_state == "ATTRACT" or aiplay) and not paused:
-                if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] > 0:
+                if ball.rect.centery > GAME_HEIGHT * 0.50 and ball.velocity[1] > 0:
                     AI_SPEED = PADDLE_SPEED  # max speed per frame
-                elif ball.rect.centery > GAME_HEIGHT * 0.50 and ball.velocity[1] > 0:
-                    AI_SPEED = 7
-                elif ball.rect.centery > GAME_HEIGHT * 0.45 and ball.velocity[1] > 0:
-                    AI_SPEED = 4
-                elif ball.rect.centery > GAME_HEIGHT * 0.40:
+                elif ball.rect.centery > GAME_HEIGHT * 0.40 and ball.velocity[1] > 0:
+                    AI_SPEED = 8
+                elif ball.rect.centery > GAME_HEIGHT * 0.30:
                     AI_SPEED = 2
-                elif ball.rect.centery > GAME_HEIGHT * 0.35:
-                    AI_SPEED = 1
                 else:
                     AI_SPEED = 0
                 if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] < 0:
@@ -896,6 +902,11 @@ def main():
             if ball.rect.y < TOP_OFFSET + 38:
                 ball.velocity[1] = abs(ball.velocity[1])
                 if game_state == 'PLAYING':
+                    if not player_data[current_player]["paddle_shrunk"]:
+                        player_data[current_player]["paddle_shrunk"] = True
+                        # Halve the paddle width
+                        paddle.shrink()
+                    
                     sfx_channel.play(sound_wall)
 
             if ball.rect.x >= GAME_WIDTH - WALL_WIDTH - 10:
@@ -923,17 +934,17 @@ def main():
                     
                     # 3. Apply the strict 1976 hardware horizontal speed steps
                     if hit_position < 0.25:
-                        ball.velocity[0] = -5  # Far Left: Sharp shallow angle outward
+                        ball.velocity[0] = -6  # Far Left: Sharp shallow angle outward
                     elif hit_position < 0.50:
-                        ball.velocity[0] = -2  # Inner Left: Soft vertical angle outward
+                        ball.velocity[0] = -3  # Inner Left: Soft vertical angle outward
                     elif hit_position < 0.75:
-                        ball.velocity[0] = 2   # Inner Right: Soft vertical angle outward
+                        ball.velocity[0] = 3   # Inner Right: Soft vertical angle outward
                     else:
-                        ball.velocity[0] = 5   # Far Right: Sharp shallow angle outward
-
+                        ball.velocity[0] = 6   # Far Right: Sharp shallow angle outward
+                    
                     # when ai plays, vary the "hitting target point" like this, otherwise ai plays "too good"
                     if aiplay:
-                        ai_target = random.randint(-paddle.rect.width//3, paddle.rect.width//3)
+                        ai_target = random.randint(-paddle.rect.width//5, paddle.rect.width//5)
                         
                     if game_state == 'PLAYING':
                         sfx_channel.play(sound_paddle)
@@ -970,21 +981,17 @@ def main():
                 # (Assuming brick.color holds the color tuple or name)
                 if brick.color == RED or brick.color == ORANGE:
                     player_data[current_player]["highest_row_hit"] = True
-                    
-                if brick.color == RED and not player_data[current_player]["paddle_shrunk"]:
-                    player_data[current_player]["paddle_shrunk"] = True
-                    # Halve the paddle width
-                    paddle.shrink()
                 
                 # Standard TTL Speed Step calculation
-                # Base velocity is 4. We adjust the baseline dynamically:
-                base_y_speed = 4
+                # Base velocity is 3. We adjust the baseline dynamically:
+                base_y_speed = 3
                 if player_data[current_player]["hit_counter"] >= 4:
                     base_y_speed = 5  # Intermediate speed 1
                 if player_data[current_player]["hit_counter"] >= 12:
-                    base_y_speed = 6  # Intermediate speed 2
+                    base_y_speed = 7  # Intermediate speed 2
                 if player_data[current_player]["highest_row_hit"]:
-                    base_y_speed = 7  # Maximum speed
+                    base_y_speed = 9  # Maximum speed
+                
 
                 # Apply the updated Y speed (preserving the current up/down direction)
                 if ball.velocity[1] > 0:

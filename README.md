@@ -23,7 +23,7 @@ The game is designed to be highly faithful to its historic TTL predecessor, emul
 All quality-of-life enhancements can be customized or toggled off completely via command-line options:
 
 *   **New Happy End:** The game finishes gracefully when the final brick is destroyed, leaving your score on screen (disable via `‑‑nohappyend`).
-*   **Tuned Audio Scales:** Collision sounds are tuned to a chromatic scale. The default is a Major scale, but it can be changed to Minor, Rock 'n' Roll, Blues, Pentatonic, Full Major (8 full notes for the 8 brick rows), or a chaotic Random mode (C6–C7 range).
+*   **Tuned Audio Scales:** Collision sounds are tuned to a chromatic scale. The default is a monotonic sounds, but it can be changed to Major, Minor, Rock 'n' Roll, Blues, Pentatonic, Full Major (8 full notes for the 8 brick rows), or a chaotic Random mode (C6–C7 range).
 *   **Centered Brick Wall:** The brick wall is perfectly centered by shifting it 2 pixels to the right. The original 1976 cabinet left the wall slightly off-center (disable via `‑‑nowallshift`).
 *   **Text Overlays:** Informative overlays clarify what the single-digit numbers mean on the display (disable via `‑‑notextoverlay`).
 *   **Easy Blink Mode:** Significantly reduces the intensity of the flashing score counter if the arcade-accurate blinking bothers your eyes (enable via `‑‑easyblink`).
@@ -135,7 +135,7 @@ You can completely customize your Breakout-Pi experience, tweak the visual style
 
 | Option | Description |
 | :--- | :--- |
-| `‑‑authentic` | For true purists. Disables all modern gameplay enhancements and forces strict, 1976 TTL-hardware-faithful rules. This option automatically implies `‑‑nohappyend`, `‑‑noservelight`, `--nopause`, `--noscaleselection`, and `‑‑nowallshift`. |
+| `‑‑authentic` | For true purists. Disables all modern gameplay enhancements and forces strict, 1976 TTL-hardware-faithful rules. This option automatically implies `‑‑nohappyend`, `‑‑noservelight`, `--nopause`, `--noscaleselection`, `--authentic`, and `‑‑nowallshift`. |
 | `--nopause` | Disables the ability to pause the game. |
 | `‑‑nohappyend` | Disables the modern "happy ending" feature. Reverts to the original 1976 arcade ending where, after clearing the second wall, the player must intentionally lose all remaining balls to end the game. *(The modern default happy ending gracefully finishes the game when the last brick dies, keeping your score and ball number on screen).* |
 | `‑‑noservelight` | Hides the "SERVE" indicator light on the screen. |
@@ -145,16 +145,18 @@ You can completely customize your Breakout-Pi experience, tweak the visual style
 | `--aiplay` | Enables the built-in AI bot to play the game automatically. You must serve the ball, AI only moves the paddle. Because Ai tries to be imperfect, it sometimes misses the ball. *Tip: You can use the arrow keys or a joystick (but not the mouse) to interfere and make the AI miss!* |
 
 ### 🎵 Audio Scale Options
-By default, the game uses a **Major** musical scale for the brick collision sound effects. You can change the chromatic scale tuning with the following options:
+By default, the game uses a monotonic sound for the brick collision sound effects. You can change the chromatic scale tuning with the following options:
 
 | Option | Description |
 | :--- | :--- |
+| `--major` | Switches the audio triggers to a Major musical scale. |
 | `--minor` | Switches the audio triggers to a Minor musical scale. |
 | `--rock` | Switches the audio triggers to a Rock'n'Roll-oriented scale. |
 | `--blues` | Switches the audio triggers to a Blues scale. |
 | `--pentatonic`<br>`‑‑penta` | Switches the audio triggers to a Pentatonic scale. |
 | `‑‑fullscale`<br>`‑‑fullmajor` | Switches the audio triggers to a full Major scale (all brick rows have different note). Try this! |
 | `--random`<br>`‑‑randomscale` | Switches the audio triggers to a random scale. |
+| `--monotonic` | Switches to monotonic (for the bricks) audio. Default setting, so actually does nothing. |
 | `‑‑noscaleswitch` | Disable sound scale switching from keyboard (S key). |
 
 ---
@@ -180,15 +182,18 @@ You can install this game into your RetroPie build either under the **Ports** me
    #!/bin/bash
    python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py
    ```
-   *Tip: You can append any [Command-Line Options](#command-line-options) directly to the end of the python3 command. For example, to enable the rainbow colors and blues audio scale, change the line to:*
-   ```bash
-   python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py --rainbowcolors --blues
-   ```
-
 
 4. **Make the script executable**:
    ```bash
    chmod +x ~/RetroPie/roms/ports/Breakout.sh
+   ```
+   *Tip: You can append any [Command-Line Options](#command-line-options) directly to the end of the python3 command in Breakout.sh script. For example, to enable the rainbow colors and blues audio scale, change the line to:*
+   ```bash
+   python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py --rainbowcolors --blues
+   ```
+   *Or you can put the command-line options into a text file named `.cmdline` located in the same folder as `breakout.py`. This is generally easier, because you don't have to remember what script or file to edit to modify the command line options. Put all the options on one line, like this:*
+   ```bash
+   --rainbowcolors --blues
    ```
 
 ### Method 2: Optional Installation under "Arcade"
@@ -211,6 +216,7 @@ If you prefer to have Breakout listed alongside your other classic arcade games,
    ```bash
    breakout-pi = "python3 ~/RetroPie/roms/ports/breakout-pi/breakout.py --altcolors --fullscale"
    ```
+   *Or you can use `.cmdline` file (see "Installation Under Ports")*
 
 4. **Restart EmulationStation** (via Main Menu -> Quit -> Restart EmulationStation). A game named **breakout** will now appear under your *Arcade* system.
 

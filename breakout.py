@@ -9,19 +9,34 @@ print(" = = = = =  Made with Python and Pygame  = = = = = ")
 print(" =  https://github.com/MS-potilas/breakout-pi/   = ")
 print(" = = = = = = = = = = = = = = = = = = = = = = = = = ")
 
+STARTTEXT = "BREAKOUT-PI"
+STARTTEXT_DELAY = 3000
+
 # change working dir to same as the script's
 abspath_ = os.path.abspath(__file__)
 dname_ = os.path.dirname(abspath_)
 os.chdir(dname_)
 
 
-# store command line
-cmdline = " " + (" ".join(sys.argv)) + " "
+# get command line to one variable
+try:
+    cmdline = " " + (" ".join(sys.argv)) + " "
+except:
+    cmdline = ""
+
+try:
+    with open('.cmdline', "r") as f:
+        cmdline = f.readline().strip()
+    cmdline = " " + cmdline + " "
+except:
+    pass
+
 cmdline = cmdline.replace('‑', '-')         # non-breaking hyphen to hyphen (used in README.md)
 
-# Initialize Pygame audio mixer (standard CD quality, 16-bit signed)
-pygame.mixer.init(frequency=44100, size=-16, channels=1, buffer=512)
 
+# Initialize Pygame audio mixer (standard CD quality, 16-bit signed)
+pygame.mixer.pre_init(frequency=44100, size=-16, channels=1, buffer=512)
+# initialize pygame
 pygame.init()
 
 # get full screen size (for example 1920x1080 or 1280x720)
@@ -43,6 +58,9 @@ TOP_OFFSET = 94
 WINDOW_W = 690
 WINDOW_H = 1080
 
+BALL_WIDTH = 12
+BALL_HEIGHT = 9
+
 PADDLE_WIDTH = 46       # <= 42+6   basically like brick (smaller gap)
 PADDLE_HEIGHT = 18      # <= 13 + 5
 
@@ -51,10 +69,10 @@ PADDLE_SPEED = 10
 PADDLE_Y_FROM_BOTTOM = 106
 
 BRICKS_TOP = 184
-BRICK_WIDTH = 42
-BRICK_HEIGHT = 13
-X_GAP = 6
-Y_GAP = 5
+BRICK_WIDTH = 43
+BRICK_HEIGHT = 14
+X_GAP = 5
+Y_GAP = 4
 
 WALL_WIDTH = 14
 
@@ -84,6 +102,7 @@ aiplay = False
 fullfps = False
 nocolorstrips = False
 mini = False
+micro = False
 nopause = False
 wallshift = 2           # move the wall 2 pixels right, so that it is better centered than in the original
 dotextoverlay = True    # display "PLAYER UP" and  "BALL IN PLAY" texts as overlay
@@ -100,6 +119,9 @@ if '-bigpaddle ' in cmdline:
 
 if '-mini ' in cmdline:
     mini = True
+
+if '-micro ' in cmdline:
+    micro = True
 
 if '-noscaleswitch ' in cmdline:
     noscaleswitch = True
@@ -148,14 +170,17 @@ if '-authentic ' in cmdline:
 
 if (is_windowing_system() and not "-fullscreen " in cmdline) or "-windowed " in cmdline:
     # create a window (under X or Wayland, for example)
-    if not mini:
-        TOP_OFFSET = 35
+    if not mini and not micro:
+        TOP_OFFSET = 34 #35
         WINDOW_H = 1060 - 70
     else:
         TOP_OFFSET -= 10
         PADDLE_Y_FROM_BOTTOM -= 10
         WINDOW_H = (GAME_HEIGHT-20) // 2
         WINDOW_W = GAME_WIDTH // 2
+        if micro:
+            WINDOW_H = (GAME_HEIGHT-20) // 3
+            WINDOW_W = GAME_WIDTH // 3
     dascreen = pygame.display.set_mode((WINDOW_W, WINDOW_H), pygame.RESIZABLE)
 else:
     # create full screen display 
@@ -166,7 +191,7 @@ else:
 if "-nobezel " in cmdline:
     dooverlay = False
 
-if mini:
+if mini or micro:
     dooverlay = False
 
 
@@ -302,6 +327,12 @@ def save_game_data():
     global player_data, current_player, is_two_player
     try:
         save_current_player_bricks(current_player)
+        player_data[1]["hit_counter"] = 0
+        player_data[1]["highest_row_hit"] = False
+        player_data[1]["paddle_shrunk"] = False
+        player_data[2]["hit_counter"] = 0
+        player_data[2]["highest_row_hit"] = False
+        player_data[2]["paddle_shrunk"] = False
         tallennettava_data = {
             "player_data": player_data,
             "current_player": current_player,
@@ -333,7 +364,7 @@ def load_game_data():
         
 
 def ball_initial_position():
-    return (GAME_WIDTH // 2, (GAME_HEIGHT - TOP_OFFSET - BRICKS_TOP - PADDLE_Y_FROM_BOTTOM) // 2 + TOP_OFFSET + BRICKS_TOP)
+    return (GAME_WIDTH // 2 + random.randint(-5,5), (GAME_HEIGHT - TOP_OFFSET - BRICKS_TOP - PADDLE_Y_FROM_BOTTOM) // 2 + TOP_OFFSET + BRICKS_TOP)
 
 def reset_to_attract():
     global game_state, waiting_for_serve
@@ -404,13 +435,14 @@ GLYPHS = {
     'V': ["101", "101", "101", "101", "101", "111", "010"],
     ':': ["000", "000", "010", "000", "000", "010", "000"],
     ' ': ["000", "000", "000", "000", "000", "000", "000"],
+    '-': ["000", "000", "000", "111", "000", "000", "000"],
+    '+': ["000", "010", "010", "111", "010", "010", "000"],
 }
 
+
+#  Draws a blocky 1976 arcade-accurate numbers and some characters.
+#  block_size = width/height of a single pixel segment within the digit.
 def draw_retro_glyphs(surface, score_str, start_x, start_y, block_size=4, color=GREY, centerx=False):
-    """
-    Draws a blocky 1976 arcade-accurate numbers and some characters.
-    block_size = width/height of a single pixel segment within the digit.
-    """
     current_x = start_x
     block_size_y = round(block_size * 0.74)
     if centerx:
@@ -436,8 +468,9 @@ def draw_retro_glyphs(surface, score_str, start_x, start_y, block_size=4, color=
         # Space out the next digit (3 columns + 1 blank column for spacing)
         current_x += 4 * block_size
 
+# Generates a pure retro arcade square wave sound sample
 def generate_square_wave(frequency, duration_secs=0.05, volume=0.3):
-    """Generates a pure retro arcade square wave sound sample."""
+    
     sample_rate = 44100
     num_samples = int(sample_rate * duration_secs)
     
@@ -515,7 +548,12 @@ soundscales = {
     'MONOTONIC': [sound_E5, sound_E5, sound_E5, sound_E5, sound_E5, sound_E5, sound_E5, sound_E5],
 }
 
-soundscaleindex = 0
+soundscaleindex = 7         # (new) default is monotonic
+
+# dur'ish (major)
+if '-major ' in cmdline:
+    soundscaleindex = 0
+
 
 # moll'ish (minor)
 if '-minor ' in cmdline:
@@ -547,54 +585,76 @@ if '-monotonic ' in cmdline:
 soundscale = list(soundscales)[soundscaleindex]
 
 
+
+def drawSoftRect(surface, w, h, color, rounded = False):
+    daacolor = (color[0]//2, color[1]//2, color[2]//2)
+    if not rounded:
+        pygame.draw.rect(surface, daacolor, [0, 0, w, h])
+    else:
+        pygame.draw.rect(surface, daacolor, [0, 1, w, w])
+        pygame.draw.rect(surface, daacolor, [1, 0, h-2, h])
+        
+    pygame.draw.rect(surface, color, [1, 1, w-2, h-2])
+    
+
+
 class Brick(pygame.sprite.Sprite):
     def __init__(self, color, x, y, value, row):
         super().__init__()
         self.image = pygame.Surface([BRICK_WIDTH, BRICK_HEIGHT])
-        dacolor = GREY if nocolorstrips else color
-        pygame.draw.rect(self.image, dacolor, [0, 0, BRICK_WIDTH, BRICK_HEIGHT])
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.drawcolor = GREY if nocolorstrips else color
         self.point_value = value
         self.color = color
         self.row = row
+        self.rect = self.image.get_rect()
+        drawSoftRect(self.image, self.rect.width, self.rect.height, self.drawcolor)
+        self.rect.x = x
+        self.rect.y = y
 
 
 class Paddle(pygame.sprite.Sprite):
-    def __init__(self, color, width, height):
+    def __init__(self, color):
         super().__init__()
-        self.image = pygame.Surface([width, height])
-        dacolor = GREY if nocolorstrips else color
-        pygame.draw.rect(self.image, dacolor, [0, 0, width, height])
+        self.color = color
+        self.image = pygame.Surface([PADDLE_WIDTH, PADDLE_HEIGHT])
         self.rect = self.image.get_rect()
         self.paddle_shrunk = False
-        self.original_width = width
+        self.original_width = self.rect.width
+        drawSoftRect(self.image, self.rect.width, self.rect.height, self.color)
     
     def grow(self):
-        old_center = self.rect.center
-        self.image = pygame.transform.scale(paddle.image, (self.original_width, self.rect.height))
-        self.paddle_shrunk = False
-        self.rect.width = self.original_width
-        self.rect.center = old_center                    
+        if self.paddle_shrunk:
+            old_center = self.rect.center
+            self.image = pygame.transform.scale(paddle.image, (self.original_width, self.rect.height))
+            self.paddle_shrunk = False
+            self.rect.width = self.original_width
+            self.rect.center = old_center                    
+            drawSoftRect(self.image, self.rect.width, self.rect.height, self.color)
 
     def shrink(self):
-        old_center = self.rect.center
-        self.image = pygame.transform.scale(paddle.image, (self.original_width//2, self.rect.height))
-        self.paddle_shrunk = True
-        self.rect.width = self.original_width // 2
-        self.rect.center = old_center                    
+        if not self.paddle_shrunk:
+            old_center = self.rect.center
+            self.image = pygame.transform.scale(paddle.image, (self.original_width//2, self.rect.height))
+            self.paddle_shrunk = True
+            self.rect.width = self.original_width // 2
+            self.rect.center = old_center                    
+            drawSoftRect(self.image, self.rect.width, self.rect.height, self.color)
 
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, color, width, height):
+    def __init__(self, color):
         super().__init__()
-        self.image = pygame.Surface([width, height])
-        pygame.draw.rect(self.image, color, [0, 0, width, height])
+        self.image = pygame.Surface([BALL_WIDTH, BALL_HEIGHT])
         self.rect = self.image.get_rect()
         self.velocity = initial_ball_speed()
-        #self.hit_counter = 0
-        #self.highest_row_hit = False
+        self.color = (-1,-1,-1)
+        self.roundball = not authentic
+        self.setcolor(color)
+    
+    def setcolor(self, color):
+        if color != self.color:
+            self.color = color
+            drawSoftRect(self.image, self.rect.width, self.rect.height, self.color, True)
         
     def update(self):
         self.rect.x += self.velocity[0]
@@ -646,11 +706,11 @@ class Joystick:
 
 
 
-paddle = Paddle(BLUE, PADDLE_WIDTH, PADDLE_HEIGHT)
+paddle = Paddle(GREY if nocolorstrips else BLUE)
 paddle.rect.x = GAME_WIDTH // 2 - PADDLE_WIDTH // 2
 paddle.rect.y = GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11
 
-ball = Ball(WHITE, 12, 8)
+ball = Ball(WHITE)
 
 ball_list = pygame.sprite.Group()
 paddle_list = pygame.sprite.Group()
@@ -665,6 +725,7 @@ all_bricks = pygame.sprite.Group()
 def save_current_player_bricks(p_num):
     # save current player's bricks before next player turn
     player_data[p_num]["bricks_state"] = []
+
     for brick in all_bricks:
         # save all needed brick data as tuple
         player_data[p_num]["bricks_state"].append((brick.color, brick.rect.x, brick.rect.y, brick.point_value, brick.row))
@@ -764,6 +825,8 @@ def main():
     reset_to_attract()
 
     ai_target = 0
+    current_time = pygame.time.get_ticks()
+    starttext_visible = current_time + STARTTEXT_DELAY
     
     if dooverlay:
         WIN_W, WIN_H = dascreen.get_size()
@@ -864,14 +927,17 @@ def main():
                 if not aiplay:
                     mouse_dx, mouse_dy = pygame.mouse.get_rel()
                     paddle.rect.x += mouse_dx
-                    
+            
+            if aiplay and not ball.rect.colliderect(paddle.rect) and ball.rect.bottom >= paddle.rect.top:
+                ai_target = 0
+            
             if (game_state == "ATTRACT" or aiplay) and not paused:
                 if ball.rect.centery > GAME_HEIGHT * 0.50 and ball.velocity[1] > 0:
-                    AI_SPEED = PADDLE_SPEED  # max speed per frame
+                    AI_SPEED = PADDLE_SPEED + 2 # max speed per frame
                 elif ball.rect.centery > GAME_HEIGHT * 0.40 and ball.velocity[1] > 0:
-                    AI_SPEED = 8
+                    AI_SPEED = PADDLE_SPEED - 2
                 elif ball.rect.centery > GAME_HEIGHT * 0.30:
-                    AI_SPEED = 3
+                    AI_SPEED = PADDLE_SPEED / 2
                 else:
                     AI_SPEED = 0
                 if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] < 0:
@@ -949,7 +1015,7 @@ def main():
                     
                     # when ai plays, vary the "hitting target point" like this, otherwise ai plays "too good"
                     if aiplay:
-                        ai_target = random.randint(-paddle.rect.width//5, paddle.rect.width//5)
+                        ai_target = random.randint(-paddle.rect.width//3, paddle.rect.width//3)
                         
                     if game_state == 'PLAYING':
                         sfx_channel.play(sound_paddle)
@@ -963,19 +1029,23 @@ def main():
                     if game_state == 'PLAYING':
                         sfx_channel.play(sound_paddle)
 
-            # find the biggest collider
             csize = 0
             collision_count = 0
             brick = None
+            crow = -1
+            if ball.velocity[1] < 0:
+                crow = 8
             for b in all_bricks:
                 if ball.rect.colliderect(b.rect):
                     collision_count += 1
                     ccsize = b.rect.clip(ball.rect).width * b.rect.clip(ball.rect).height
-                    if ccsize > csize:
+                    ccrow = b.row
+                    # select brick, that is on the first row from the ball's direction, and the biggest collider on the same row
+                    if ball.velocity[1] < 0 and ccrow < crow or ball.velocity[1] > 0 and ccrow > crow or ccrow == crow and ccsize > csize:
                         brick = b
-                        #if csize:
-                        #    print(f"bigger brick collision! {ccsize}>{csize}")
+                        crow = ccrow
                         csize = ccsize
+                    
             collision_detected = False
             if collision_count:
                 if game_state == 'PLAYING':
@@ -994,7 +1064,7 @@ def main():
                     base_y_speed = 6  # Intermediate speed 1
                 if player_data[current_player]["hit_counter"] >= 12:
                     base_y_speed = 8  # Intermediate speed 2
-                if player_data[current_player]["highest_row_hit"]:
+                if player_data[current_player]["highest_row_hit"] and game_state == 'PLAYING':
                     base_y_speed = 10  # Maximum speed
                 
 
@@ -1018,18 +1088,18 @@ def main():
                     if (ball.velocity[0] > 0 and ball.rect.centerx < brick.rect.centerx) or \
                        (ball.velocity[0] < 0 and ball.rect.centerx > brick.rect.centerx):
                         ball.velocity[0] *= -1
+                    else:   # to be safe, back off
+                        ball.velocity[0] *= -1
+                        ball.velocity[1] *= -1
                 else:
                     # --- top/bottom hit ---
                     # reverse direction only if ball is moving towards brick
                     if (ball.velocity[1] > 0 and ball.rect.centery < brick.rect.centery) or \
                        (ball.velocity[1] < 0 and ball.rect.centery > brick.rect.centery):
                         ball.velocity[1] *= -1
-                    # if in attract mode, push the ball a bit away from the brick
-                    if game_state == "ATTRACT":
-                        if ball.velocity[1] > 0:
-                            ball.rect.top = brick.rect.bottom
-                        else:
-                            ball.rect.bottom = brick.rect.top
+                    else:   # to be safe, back off
+                        ball.velocity[0] *= -1
+                        ball.velocity[1] *= -1
                 
                 # Trigger the correct pitch based on the point tier
                 if game_state == 'PLAYING':
@@ -1074,6 +1144,10 @@ def main():
         # on the game area (screen)
         screen.fill(BLACK)
         
+        all_bricks.draw(screen)
+        if game_state == 'PLAYING':
+            paddle_list.draw(screen)
+        
         # borders
         pygame.draw.line(screen, GREY, [0, TOP_OFFSET + 19], [GAME_WIDTH, TOP_OFFSET + 19], 37)
         pygame.draw.line(screen, GREY, [(WALL_WIDTH / 2) - 1, 0], [(WALL_WIDTH / 2) - 1, GAME_HEIGHT], WALL_WIDTH)
@@ -1086,14 +1160,14 @@ def main():
                 pygame.draw.line(screen, (z,z,z), [GAME_WIDTH - WALL_WIDTH, GAME_HEIGHT-i-1], [GAME_WIDTH - 1, GAME_HEIGHT-i-1], 1)
                 pygame.draw.line(screen, (z,z,z), [0, i], [WALL_WIDTH - 1, i], 1)
                 pygame.draw.line(screen, (z,z,z), [GAME_WIDTH - WALL_WIDTH, i], [GAME_WIDTH - 1, i], 1)
+
+        if game_state != 'PLAYING':     # paddle area is solid blue wall
+            pygame.draw.line(screen, GREY if nocolorstrips else BLUE, [(WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2],  [(GAME_WIDTH - WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2], PADDLE_HEIGHT+1)
             
         if not nocolorstrips:
             # 46 is the height of the blue color strip
             pygame.draw.line(screen, BLUE, [(WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2], [(WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2 + 46], WALL_WIDTH)
             pygame.draw.line(screen, BLUE, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2 + 46], WALL_WIDTH)
-
-        if game_state != 'PLAYING':     # paddle area is solid blue wall
-            pygame.draw.line(screen, GREY if nocolorstrips else BLUE, [(WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2],  [(GAME_WIDTH - WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2], PADDLE_HEIGHT+1)            
 
         if not nocolorstrips:
             pygame.draw.line(screen, RED, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * BRICK_HEIGHT + 2 * Y_GAP], WALL_WIDTH)
@@ -1108,7 +1182,6 @@ def main():
             pygame.draw.line(screen, YELLOW, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 6 * BRICK_HEIGHT + 6 * Y_GAP], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 8 * BRICK_HEIGHT + 8 * Y_GAP], WALL_WIDTH)
             pygame.draw.line(screen, YELLOW, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 6 * BRICK_HEIGHT + 6 * Y_GAP], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 8 * BRICK_HEIGHT + 8 * Y_GAP], WALL_WIDTH)
         
-        all_bricks.draw(screen)
 
         # draw blinking score etc
         current_score1 = player_data[1]["score"]
@@ -1134,8 +1207,6 @@ def main():
         ballno = 4 - player_data[current_player]["lives"]
         draw_retro_glyphs(screen, str(ballno), start_x=(GAME_WIDTH-WALL_WIDTH)//2+WALL_WIDTH+gap + 48, start_y=TOP_OFFSET + 38+gap, block_size=bsize)
 
-        if game_state == 'PLAYING':
-            paddle_list.draw(screen)
         if not waiting_for_serve and serve_delay_timer == 0:
             # color the ball depenging on y position
             if ball.rect.centery > TOP_OFFSET + BRICKS_TOP and ball.rect.centery <= TOP_OFFSET + BRICKS_TOP + 2 * (Y_GAP + BRICK_HEIGHT):
@@ -1154,7 +1225,8 @@ def main():
                 ball_color = WHITE
 
             # update ball's color and draw it
-            ball.image.fill(ball_color)            
+            #ball.image.fill(ball_color)            
+            ball.setcolor(ball_color)
             ball_list.draw(screen)
             
         if game_state == "PLAYING" and waiting_for_serve and doservelight and serve_light_visible:
@@ -1168,6 +1240,13 @@ def main():
                 draw_retro_glyphs(screen, "SOUNDSCALE: "+soundscale, GAME_WIDTH // 2, TOP_OFFSET+9, 4, color=BLACK if nocolorstrips else BLUE, centerx = True)
             if current_time >= soundscale_visible:
                 soundscale_visible = 0
+
+        if starttext_visible:
+            if not authentic:
+                draw_retro_glyphs(screen, STARTTEXT, GAME_WIDTH // 2, TOP_OFFSET+(GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - TOP_OFFSET) // 2, 4, color=WHITE, centerx = True)
+            if current_time >= starttext_visible:
+                starttext_visible = 0
+
 
         if dotextoverlay:
             screen.blit(textoverlay, (WALL_WIDTH + 46, TOP_OFFSET + 83))
@@ -1183,6 +1262,10 @@ def main():
         if mini:
             GAME_W = GAME_WIDTH // 2
             GAME_H = GAME_HEIGHT // 2
+            scr = pygame.transform.scale(screen, (GAME_W, GAME_H))
+        if micro:
+            GAME_W = GAME_WIDTH // 3
+            GAME_H = GAME_HEIGHT // 3
             scr = pygame.transform.scale(screen, (GAME_W, GAME_H))
             
         # game surface to middle of the screen

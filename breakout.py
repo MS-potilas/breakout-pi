@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import math, os, sys, random, pickle
 import numpy as np
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
@@ -179,8 +180,8 @@ if (is_windowing_system() and not "-fullscreen " in cmdline) or "-windowed " in 
         WINDOW_H = (GAME_HEIGHT-20) // 2
         WINDOW_W = GAME_WIDTH // 2
         if micro:
-            WINDOW_H = (GAME_HEIGHT-20) // 3
-            WINDOW_W = GAME_WIDTH // 3
+            WINDOW_H = (GAME_HEIGHT-20) // 2.5
+            WINDOW_W = GAME_WIDTH // 2.5
     dascreen = pygame.display.set_mode((WINDOW_W, WINDOW_H), pygame.RESIZABLE)
 else:
     # create full screen display 
@@ -265,7 +266,7 @@ serve_delay_timer = 0       # time when serve delay ends
 soundscale_visible = 0
 
 def initial_ball_speed():   # "initial horizontal speed is random" -service manual
-    return [random.choice([-4, -3, -2, 2, 3, 4]), 4]
+    return [random.choice([-5,-4, -3, -2, 2, 3, 4,-5]), 4]
 
 # serve delay "no loger than 4 seconds" (cut it down to 3) -service manual
 def get_serve_delay():
@@ -520,32 +521,32 @@ N_Bb6 = 1864.66
 N_B6 = 1975.53
 N_C7 = 2093.0
 
-sound_wall = generate_square_wave(N_C5, duration_secs=0.015)        
-sound_paddle = generate_square_wave(N_C6, duration_secs=0.02)      
+sound_wall = generate_square_wave(N_C6, duration_secs=0.01)        
+sound_paddle = generate_square_wave(N_C7, duration_secs=0.012)
 
-sound_C5 = generate_square_wave(N_C5, duration_secs=0.01)
-sound_Db5 = generate_square_wave(N_Db5, duration_secs=0.01)
-sound_D5 = generate_square_wave(N_D5, duration_secs=0.01)
-sound_Eb5 = generate_square_wave(N_Eb5, duration_secs=0.01)
-sound_E5 = generate_square_wave(N_E5, duration_secs=0.01)
-sound_F5 = generate_square_wave(N_F5, duration_secs=0.01)
-sound_Gb5 = generate_square_wave(N_Gb5, duration_secs=0.01)
-sound_G5 = generate_square_wave(N_G5, duration_secs=0.01)
-sound_Ab5 = generate_square_wave(N_Ab5, duration_secs=0.01)
-sound_A5 = generate_square_wave(N_A5, duration_secs=0.01)
-sound_Bb5 = generate_square_wave(N_Bb5, duration_secs=0.01)
-sound_B5 = generate_square_wave(N_B5, duration_secs=0.01)
-sound_C6 = generate_square_wave(N_C6, duration_secs=0.01)
+sound_C5 = generate_square_wave(N_C5, duration_secs=0.008)
+sound_Db5 = generate_square_wave(N_Db5, duration_secs=0.008)
+sound_D5 = generate_square_wave(N_D5, duration_secs=0.008)
+sound_Eb5 = generate_square_wave(N_Eb5, duration_secs=0.008)
+sound_E5 = generate_square_wave(N_E5, duration_secs=0.008)
+sound_F5 = generate_square_wave(N_F5, duration_secs=0.008)
+sound_Gb5 = generate_square_wave(N_Gb5, duration_secs=0.008)
+sound_G5 = generate_square_wave(N_G5, duration_secs=0.008)
+sound_Ab5 = generate_square_wave(N_Ab5, duration_secs=0.008)
+sound_A5 = generate_square_wave(N_A5, duration_secs=0.008)
+sound_Bb5 = generate_square_wave(N_Bb5, duration_secs=0.008)
+sound_B5 = generate_square_wave(N_B5, duration_secs=0.008)
+sound_C6 = generate_square_wave(N_C6, duration_secs=0.008)
 
 soundscales = {
-    'MAJOR': [sound_E5, sound_E5, sound_F5, sound_F5, sound_G5, sound_G5, sound_A5, sound_A5],
-    'MINOR': [sound_Eb5, sound_Eb5, sound_F5, sound_F5, sound_G5, sound_G5, sound_A5, sound_A5],
+    'MAJOR': [sound_C5, sound_C5, sound_E5, sound_E5, sound_G5, sound_G5, sound_C6, sound_C6],
+    'MINOR': [sound_C5, sound_C5, sound_Eb5, sound_Eb5, sound_G5, sound_G5, sound_C6, sound_C6],
     'ROCK': [sound_E5, sound_E5, sound_G5, sound_G5, sound_A5, sound_A5, sound_Bb5, sound_Bb5],
     'BLUES': [sound_Eb5, sound_Eb5, sound_G5, sound_G5, sound_A5, sound_A5, sound_Bb5, sound_Bb5],
     'PENTATONIC': [sound_D5, sound_D5, sound_E5, sound_E5, sound_G5, sound_G5, sound_A5, sound_A5],
     'FULL MAJOR': [sound_C5, sound_D5, sound_E5, sound_F5, sound_G5, sound_A5, sound_B5, sound_C6],
     'RANDOM': [sound_C5, sound_Db5, sound_D5, sound_Eb5, sound_E5, sound_F5, sound_Gb5, sound_G5, sound_Ab5, sound_A5, sound_Bb5, sound_B5, sound_C6],
-    'MONOTONIC': [sound_E5, sound_E5, sound_E5, sound_E5, sound_E5, sound_E5, sound_E5, sound_E5],
+    'MONOTONIC': [sound_C5, sound_C5, sound_C5, sound_C5, sound_C5, sound_C5, sound_C5, sound_C5],
 }
 
 soundscaleindex = 7         # (new) default is monotonic
@@ -1088,9 +1089,6 @@ def main():
                     if (ball.velocity[0] > 0 and ball.rect.centerx < brick.rect.centerx) or \
                        (ball.velocity[0] < 0 and ball.rect.centerx > brick.rect.centerx):
                         ball.velocity[0] *= -1
-                    else:   # to be safe, back off
-                        ball.velocity[0] *= -1
-                        ball.velocity[1] *= -1
                 else:
                     # --- top/bottom hit ---
                     # reverse direction only if ball is moving towards brick
@@ -1264,8 +1262,8 @@ def main():
             GAME_H = GAME_HEIGHT // 2
             scr = pygame.transform.scale(screen, (GAME_W, GAME_H))
         if micro:
-            GAME_W = GAME_WIDTH // 3
-            GAME_H = GAME_HEIGHT // 3
+            GAME_W = GAME_WIDTH // 2.5
+            GAME_H = GAME_HEIGHT // 2.5
             scr = pygame.transform.scale(screen, (GAME_W, GAME_H))
             
         # game surface to middle of the screen

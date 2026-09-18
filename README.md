@@ -16,7 +16,7 @@ The game is designed to be highly faithful to its historic TTL predecessor, emul
 
 ### 🎮 Authentic Gameplay & Flexible Display
 *   **Original Physics:** Faithfully replicates the original 1976 speed, angles, and scoring mechanics.
-*   **Display Modes:** Supports full-screen as well as windowed modes (including a 50% scaled-down mini view) via CLI flags.
+*   **Display Modes:** Supports full-screen as well as windowed modes (including "mini" and "micro" views) via CLI flags.
 *   **Cabinet Bezels:** Full-screen mode supports two different decorative arcade-style bezels to surround the game display.
 
 ### ✨ Modern Enhancements
@@ -122,6 +122,7 @@ You can completely customize your Breakout-Pi experience, tweak the visual style
 | `‑‑fullscreen` | Opens the game in full-screen mode (default when run without a window manager). |
 | `‑‑windowed` | Opens the game in a windowed mode. |
 | `--mini` | Scales the game display down to 50% width and height. Great for playing in a small window. |
+| `--micro` | Scales the game display down to 40% width and height. Great for playing (or watching AI play) in a small window. |
 | `--nobezel` | Disables the digital artwork bezel. Perfect if you are using a real, physical cabinet bezel around your monitor! |
 | `--altbezel` | Uses alternative bezel art. *(Note: This cannot be used in windowed mode, which does not support bezels).* |
 | `‑‑nocolorstrips`<br>`‑‑nocolors`<br>`‑‑monochrome`<br>`--mono` | Disables the digital color overlay, reverting the game to a pure black-and-white monitor style. Ideal if you want to place real, physical colored plastic strips onto your physical monitor! |

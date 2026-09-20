@@ -1275,13 +1275,13 @@ def main():
 
         if not waiting_for_serve and serve_delay_timer == 0:
             # color the ball depenging on y position
-            if ball.rect.centery > TOP_OFFSET + BRICKS_TOP and ball.rect.centery <= TOP_OFFSET + BRICKS_TOP + 2 * (Y_GAP + BRICK_HEIGHT):
+            if ball.rect.centery > TOP_OFFSET + BRICKS_TOP - 3 and ball.rect.centery <= TOP_OFFSET + BRICKS_TOP + 2 * (Y_GAP + BRICK_HEIGHT) - 3:
                 ball_color = RED
-            elif ball.rect.centery > TOP_OFFSET + BRICKS_TOP + 2 * (Y_GAP + BRICK_HEIGHT) and ball.rect.centery <= TOP_OFFSET + BRICKS_TOP + 4 * (Y_GAP + BRICK_HEIGHT):
+            elif ball.rect.centery > TOP_OFFSET + BRICKS_TOP + 2 * (Y_GAP + BRICK_HEIGHT) - 3 and ball.rect.centery <= TOP_OFFSET + BRICKS_TOP + 4 * (Y_GAP + BRICK_HEIGHT) - 3:
                 ball_color = ORANGE
-            elif ball.rect.centery > TOP_OFFSET + BRICKS_TOP + 4 * (Y_GAP + BRICK_HEIGHT) and ball.rect.centery <= TOP_OFFSET + BRICKS_TOP + 6 * (Y_GAP + BRICK_HEIGHT):
+            elif ball.rect.centery > TOP_OFFSET + BRICKS_TOP + 4 * (Y_GAP + BRICK_HEIGHT) - 3 and ball.rect.centery <= TOP_OFFSET + BRICKS_TOP + 6 * (Y_GAP + BRICK_HEIGHT) - 3:
                 ball_color = GREEN
-            elif ball.rect.centery > TOP_OFFSET + BRICKS_TOP + 6 * (Y_GAP + BRICK_HEIGHT) and ball.rect.centery <= TOP_OFFSET + BRICKS_TOP + 8 * (Y_GAP + BRICK_HEIGHT):
+            elif ball.rect.centery > TOP_OFFSET + BRICKS_TOP + 6 * (Y_GAP + BRICK_HEIGHT) - 3 and ball.rect.centery <= TOP_OFFSET + BRICKS_TOP + 8 * (Y_GAP + BRICK_HEIGHT) - 3:
                 ball_color = YELLOW
             elif ball.rect.centery > GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2 and ball.rect.centery <= GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2 + 46:
                 ball_color = BLUE

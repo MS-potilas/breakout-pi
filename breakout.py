@@ -1081,13 +1081,13 @@ def main():
 
                     # 3. Apply the strict 1976 hardware horizontal speed steps
                     if hit_position < 0.25:
-                        ball.velocity[0] = -6  # Far Left: Sharp shallow angle outward
+                        ball.velocity[0] = -7  # Far Left: Sharp shallow angle outward
                     elif hit_position < 0.50:
-                        ball.velocity[0] = -3  # Inner Left: Soft vertical angle outward
+                        ball.velocity[0] = -4  # Inner Left: Soft vertical angle outward
                     elif hit_position < 0.75:
-                        ball.velocity[0] = 3   # Inner Right: Soft vertical angle outward
+                        ball.velocity[0] = 4   # Inner Right: Soft vertical angle outward
                     else:
-                        ball.velocity[0] = 6   # Far Right: Sharp shallow angle outward
+                        ball.velocity[0] = 7   # Far Right: Sharp shallow angle outward
 
                     # when ai plays, vary the "hitting target point" like this, otherwise ai plays "too good"
                     if aiplay:
@@ -1236,17 +1236,17 @@ def main():
             pygame.draw.line(screen, BLUE, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 11 + PADDLE_HEIGHT / 2 - 46 / 2 + 46], WALL_WIDTH)
 
         if not nocolorstrips:
-            pygame.draw.line(screen, RED, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * BRICK_HEIGHT + 2 * Y_GAP], WALL_WIDTH)
-            pygame.draw.line(screen, RED, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * (BRICK_HEIGHT + Y_GAP)], WALL_WIDTH)
+            pygame.draw.line(screen, RED, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 2 * BRICK_HEIGHT + 2 * Y_GAP], WALL_WIDTH)
+            pygame.draw.line(screen, RED, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 2 * (BRICK_HEIGHT + Y_GAP)], WALL_WIDTH)
 
-            pygame.draw.line(screen, ORANGE, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * (BRICK_HEIGHT + Y_GAP)], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 4 * BRICK_HEIGHT + 4 * Y_GAP], WALL_WIDTH)
-            pygame.draw.line(screen, ORANGE, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 2 * BRICK_HEIGHT + 2 * Y_GAP], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 4 * (BRICK_HEIGHT + Y_GAP)], WALL_WIDTH)
+            pygame.draw.line(screen, ORANGE, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 2 * (BRICK_HEIGHT + Y_GAP)], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 4 * BRICK_HEIGHT + 4 * Y_GAP], WALL_WIDTH)
+            pygame.draw.line(screen, ORANGE, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 2 * BRICK_HEIGHT + 2 * Y_GAP], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 4 * (BRICK_HEIGHT + Y_GAP)], WALL_WIDTH)
 
-            pygame.draw.line(screen, GREEN, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 4 * BRICK_HEIGHT + 4 * Y_GAP], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 6 * BRICK_HEIGHT + 6 * Y_GAP], WALL_WIDTH)
-            pygame.draw.line(screen, GREEN, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 4 * BRICK_HEIGHT + 4 * Y_GAP], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 6 * BRICK_HEIGHT + 6 * Y_GAP], WALL_WIDTH)
+            pygame.draw.line(screen, GREEN, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 4 * BRICK_HEIGHT + 4 * Y_GAP], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 6 * BRICK_HEIGHT + 6 * Y_GAP], WALL_WIDTH)
+            pygame.draw.line(screen, GREEN, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 4 * BRICK_HEIGHT + 4 * Y_GAP], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 6 * BRICK_HEIGHT + 6 * Y_GAP], WALL_WIDTH)
 
-            pygame.draw.line(screen, YELLOW, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 6 * BRICK_HEIGHT + 6 * Y_GAP], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 8 * BRICK_HEIGHT + 8 * Y_GAP], WALL_WIDTH)
-            pygame.draw.line(screen, YELLOW, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 6 * BRICK_HEIGHT + 6 * Y_GAP], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 2.5 + 8 * BRICK_HEIGHT + 8 * Y_GAP], WALL_WIDTH)
+            pygame.draw.line(screen, YELLOW, [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 6 * BRICK_HEIGHT + 6 * Y_GAP], [(WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 8 * BRICK_HEIGHT + 8 * Y_GAP], WALL_WIDTH)
+            pygame.draw.line(screen, YELLOW, [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 6 * BRICK_HEIGHT + 6 * Y_GAP], [(GAME_WIDTH - WALL_WIDTH / 2) - 1, TOP_OFFSET + BRICKS_TOP - 3 + 8 * BRICK_HEIGHT + 8 * Y_GAP], WALL_WIDTH)
 
 
         # draw blinking score etc

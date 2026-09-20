@@ -62,7 +62,7 @@ WINDOW_H = 1080
 BALL_WIDTH = 12
 BALL_HEIGHT = 9
 
-PADDLE_WIDTH = 46       # <= 42+6   basically like brick (smaller gap)
+PADDLE_WIDTH = 48       # <= 42+6   basically like brick (smaller gap)
 PADDLE_HEIGHT = 18      # <= 13 + 5
 
 PADDLE_SPEED = 10

@@ -312,8 +312,6 @@ player_data = {
 def start_new_game(two_player_mode):
     global game_state, current_player, is_two_player, player_data, soundscale_visible
 
-    #soundscale_visible = pygame.time.get_ticks() + 1500
-
     is_two_player = two_player_mode
     current_player = 1  # Player 1 always starts the game
     game_state = "PLAYING"
@@ -500,6 +498,8 @@ def draw_colored_starttext(tick):
         draw_retro_glyphs(screen, STARTTEXT[i], (GAME_WIDTH - txtlen*chrw) // 2 + i*chrw, TOP_OFFSET+(GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - TOP_OFFSET) // 2, 4, color=colorslide[tick+i])
 
 
+
+
 # Generates a pure retro arcade square wave sound sample
 def generate_square_wave(frequency, duration_secs=0.05, volume=0.3):
 
@@ -537,7 +537,6 @@ N_A5 = 880.0
 N_Bb5 = 932.33
 N_B5 = 987.77
 
-
 N_C6 = 1046.5
 N_Db6 = 1108.73
 N_D6 = 1174.66
@@ -555,19 +554,19 @@ N_C7 = 2093.0
 sound_wall = generate_square_wave(N_C6, duration_secs=0.01)
 sound_paddle = generate_square_wave(N_C7, duration_secs=0.012)
 
-sound_C5 = generate_square_wave(N_C5, duration_secs=0.008)
-sound_Db5 = generate_square_wave(N_Db5, duration_secs=0.008)
-sound_D5 = generate_square_wave(N_D5, duration_secs=0.008)
-sound_Eb5 = generate_square_wave(N_Eb5, duration_secs=0.008)
-sound_E5 = generate_square_wave(N_E5, duration_secs=0.008)
-sound_F5 = generate_square_wave(N_F5, duration_secs=0.008)
-sound_Gb5 = generate_square_wave(N_Gb5, duration_secs=0.008)
-sound_G5 = generate_square_wave(N_G5, duration_secs=0.008)
-sound_Ab5 = generate_square_wave(N_Ab5, duration_secs=0.008)
-sound_A5 = generate_square_wave(N_A5, duration_secs=0.008)
-sound_Bb5 = generate_square_wave(N_Bb5, duration_secs=0.008)
-sound_B5 = generate_square_wave(N_B5, duration_secs=0.008)
-sound_C6 = generate_square_wave(N_C6, duration_secs=0.008)
+sound_C5 = generate_square_wave(N_C5, duration_secs=0.008, volume=0.25)
+sound_Db5 = generate_square_wave(N_Db5, duration_secs=0.008, volume=0.25)
+sound_D5 = generate_square_wave(N_D5, duration_secs=0.008, volume=0.25)
+sound_Eb5 = generate_square_wave(N_Eb5, duration_secs=0.008, volume=0.25)
+sound_E5 = generate_square_wave(N_E5, duration_secs=0.008, volume=0.25)
+sound_F5 = generate_square_wave(N_F5, duration_secs=0.008, volume=0.25)
+sound_Gb5 = generate_square_wave(N_Gb5, duration_secs=0.008, volume=0.25)
+sound_G5 = generate_square_wave(N_G5, duration_secs=0.008, volume=0.25)
+sound_Ab5 = generate_square_wave(N_Ab5, duration_secs=0.008, volume=0.25)
+sound_A5 = generate_square_wave(N_A5, duration_secs=0.008, volume=0.25)
+sound_Bb5 = generate_square_wave(N_Bb5, duration_secs=0.008, volume=0.25)
+sound_B5 = generate_square_wave(N_B5, duration_secs=0.008, volume=0.25)
+sound_C6 = generate_square_wave(N_C6, duration_secs=0.008, volume=0.25)
 
 soundscales = {
     'MAJOR': [sound_C5, sound_C5, sound_E5, sound_E5, sound_G5, sound_G5, sound_C6, sound_C6],
@@ -843,10 +842,42 @@ if not aiplay:
     pygame.event.set_grab(True)
 
 
+
+# brick hit multi-beeps (depending on brick point value)
+BEEP_EVENT = pygame.USEREVENT + 1
+
+# how many brick hit beeps left
+beeps_remaining = 0
+
+# single channel for brick sounds
+sfx_channel = pygame.mixer.Channel(0)
+
+current_beep = None
+
+def trigger_brick_sound(points, tone):
+    global beeps_remaining, current_beep
+    current_beep = tone
+    beeps_remaining = points
+    # repeat sound using timer
+    pygame.time.set_timer(BEEP_EVENT, 60)
+    # play first beep now
+    play_single_beep()
+
+def play_single_beep():
+    global beeps_remaining, current_beep
+    if beeps_remaining > 0:
+        if current_beep:
+            sfx_channel.play(current_beep)
+        beeps_remaining -= 1
+    if not beeps_remaining:
+        # turn timer off
+        pygame.time.set_timer(BEEP_EVENT, 0)
+
+
+
 def main():
     global game_state, all_bricks, serve_delay_timer, waiting_for_serve, fullfps, soundscale, soundscaleindex, soundscale_visible
 
-    sfx_channel = pygame.mixer.Channel(0)
     joysticks = Joystick()
 
     clock = pygame.time.Clock()
@@ -858,6 +889,8 @@ def main():
     ai_target = 0
     current_time = pygame.time.get_ticks()
     starttext_visible = current_time + STARTTEXT_DELAY
+
+    brickkilldirection = 1       # -1 or 1, depending if ball is coming from paddle (-1) or top wall (1)
 
     if dooverlay:
         WIN_W, WIN_H = dascreen.get_size()
@@ -882,6 +915,8 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            if event.type == BEEP_EVENT:
+                play_single_beep()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 run = False
             if event.type == pygame.KEYDOWN and (event.key == pygame.K_c or event.key == pygame.K_RETURN) and pygame.key.get_mods() & pygame.KMOD_CTRL:
@@ -1006,24 +1041,30 @@ def main():
                     ball.update()
 
             if ball.rect.y < TOP_OFFSET + 38:
-                ball.velocity[1] = abs(ball.velocity[1])
+                #ball.velocity[1] = abs(ball.velocity[1])
+                ball.velocity[1] = 4
+                brickkilldirection = 1
                 if game_state == 'PLAYING':
                     if not player_data[current_player]["paddle_shrunk"]:
                         player_data[current_player]["paddle_shrunk"] = True
                         # Halve the paddle width
                         paddle.shrink()
 
-                    sfx_channel.play(sound_wall)
+                    #sfx_channel.play(sound_wall)
+                    sound_wall.play()
+
 
             if ball.rect.x >= GAME_WIDTH - WALL_WIDTH - 10:
                 ball.velocity[0] = -abs(ball.velocity[0])
                 if game_state == 'PLAYING':
-                    sfx_channel.play(sound_wall)
+                    #sfx_channel.play(sound_wall)
+                    sound_wall.play()
 
             if ball.rect.x <= WALL_WIDTH:
                 ball.velocity[0] = abs(ball.velocity[0])
                 if game_state == 'PLAYING':
-                    sfx_channel.play(sound_wall)
+                    #sfx_channel.play(sound_wall)
+                    sound_wall.play()
 
             # if ball missed:
             if game_state == 'PLAYING':
@@ -1052,8 +1093,9 @@ def main():
                     if aiplay:
                         ai_target = random.randint(-paddle.rect.width//3, paddle.rect.width//3)
 
-                    if game_state == 'PLAYING':
-                        sfx_channel.play(sound_paddle)
+                    brickkilldirection = -1
+                    #sfx_channel.play(sound_paddle)
+                    sound_paddle.play()
             if game_state == 'ATTRACT':
                 if ball.rect.top >= GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 16:
                     ball.velocity[1] = -abs(ball.velocity[1])
@@ -1061,8 +1103,7 @@ def main():
                         # vary the x-velocity a bit so that attract mode bouncing is little more interesting
                         # subtle variation
                         ball.velocity[0] = math.copysign(random.randint(2,4), ball.velocity[0])
-                    if game_state == 'PLAYING':
-                        sfx_channel.play(sound_paddle)
+
 
             csize = 0
             collision_count = 0
@@ -1070,16 +1111,17 @@ def main():
             crow = -1
             if ball.velocity[1] < 0:
                 crow = 8
-            for b in all_bricks:
-                if ball.rect.colliderect(b.rect):
-                    collision_count += 1
-                    ccsize = b.rect.clip(ball.rect).width * b.rect.clip(ball.rect).height
-                    ccrow = b.row
-                    # select brick, that is on the first row from the ball's direction, and the biggest collider on the same row
-                    if ball.velocity[1] < 0 and ccrow < crow or ball.velocity[1] > 0 and ccrow > crow or ccrow == crow and ccsize > csize:
-                        brick = b
-                        crow = ccrow
-                        csize = ccsize
+            if np.sign(ball.velocity[1]) == brickkilldirection:
+                for b in all_bricks:
+                    if ball.rect.colliderect(b.rect):
+                        collision_count += 1
+                        ccsize = b.rect.clip(ball.rect).width * b.rect.clip(ball.rect).height
+                        ccrow = b.row
+                        # select brick, that is on the first row from the ball's direction, and the biggest collider on the same row
+                        if ball.velocity[1] < 0 and ccrow < crow or ball.velocity[1] > 0 and ccrow > crow or ccrow == crow and ccsize > csize:
+                            brick = b
+                            crow = ccrow
+                            csize = ccsize
 
             collision_detected = False
             if collision_count:
@@ -1087,7 +1129,7 @@ def main():
                     player_data[current_player]["score"] += brick.point_value
                     player_data[current_player]["hit_counter"] += 1
 
-                # Check row color for speed-up or paddle shrink
+                # Check row color for speed-up
                 # (Assuming brick.color holds the color tuple or name)
                 if brick.colorstrip == S_RED or brick.colorstrip == S_ORANGE:
                     player_data[current_player]["highest_row_hit"] = True
@@ -1102,7 +1144,6 @@ def main():
                 if player_data[current_player]["highest_row_hit"] and game_state == 'PLAYING':
                     base_y_speed = 10  # Maximum speed
 
-
                 # Apply the updated Y speed (preserving the current up/down direction)
                 if ball.velocity[1] > 0:
                     ball.velocity[1] = base_y_speed
@@ -1113,36 +1154,26 @@ def main():
                 overlap_x = min(ball.rect.right, brick.rect.right) - max(ball.rect.left, brick.rect.left)
                 overlap_y = min(ball.rect.bottom, brick.rect.bottom) - max(ball.rect.top, brick.rect.top)
 
+                # always reverse y direction
+                ball.velocity[1] *= -1
                 # if we're hitting more than one brick, just back off!
                 if collision_count > 1:
                     ball.velocity[0] *= -1
-                    ball.velocity[1] *= -1
                 elif overlap_x <= overlap_y:
-                    # --- side hit ---
-                    # reverse x direction only if ball is moving towards brick
+                    # side hit: reverse x direction only if ball is moving towards brick
                     if (ball.velocity[0] > 0 and ball.rect.centerx < brick.rect.centerx) or \
                        (ball.velocity[0] < 0 and ball.rect.centerx > brick.rect.centerx):
                         ball.velocity[0] *= -1
-                    else:   # to be safe, back off (reverse both)
-                        ball.velocity[0] *= -1
-                        ball.velocity[1] *= -1
-                else:
-                    # --- top/bottom hit ---
-                    # reverse y direction only if ball is moving towards brick
-                    if (ball.velocity[1] > 0 and ball.rect.centery < brick.rect.centery) or \
-                       (ball.velocity[1] < 0 and ball.rect.centery > brick.rect.centery):
-                        ball.velocity[1] *= -1
-                    else:   # to be safe, back off
-                        ball.velocity[0] *= -1
-                        ball.velocity[1] *= -1
 
                 # Trigger the correct pitch based on the point tier
                 if game_state == 'PLAYING':
                     pitch = 7 - brick.row
+
                     if soundscaleindex == 6: # RANDOM
-                        sfx_channel.play(random.choice(soundscales[soundscale]))
+                        beep = random.choice(soundscales[soundscale])
                     else:
-                        sfx_channel.play(soundscales[soundscale][pitch])
+                        beep = soundscales[soundscale][pitch]
+                    trigger_brick_sound(brick.point_value, beep)
                     brick.kill()
                     collision_detected = True
 

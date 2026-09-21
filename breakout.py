@@ -219,7 +219,7 @@ if dotextoverlay:
     try:
         textoverlay = pygame.image.load(f"images/textoverlay.png").convert_alpha()
     except:
-        dooverlay = False
+        dotextoverlay = False
 
 
 # integers matching color strip rows, block row // 2
@@ -839,12 +839,14 @@ def rebuild_brick_wall():
 
 
 if not aiplay:
-    pygame.mouse.set_visible(False)
     pygame.event.set_grab(True)
 
+if not aiplay or fullscreen:
+    pygame.mouse.set_visible(False)
 
 
 # brick hit multi-sounds (depending on brick point value)
+BRICK_SOUND_DELAY = 60 # milliseconds
 BRICK_SOUND_EVENT = pygame.USEREVENT + 1
 
 # how many brick hit brick_sounds left
@@ -860,7 +862,7 @@ def trigger_brick_sound(points, tone):
     current_brick_sound = tone
     brick_sounds_remaining = points
     # repeat sound using timer
-    pygame.time.set_timer(BRICK_SOUND_EVENT, 60)
+    pygame.time.set_timer(BRICK_SOUND_EVENT, BRICK_SOUND_DELAY)
     # play first brick_sound now
     play_single_brick_sound()
 
@@ -895,15 +897,8 @@ def main():
 
     brickkilldirection = 1       # -1 or 1, depending if ball is coming from paddle (-1) or top wall (1)
 
-    if dooverlay:
-        WIN_W, WIN_H = dascreen.get_size()
-
-        # game surface to middle of the screen
-        OFFSET_X = (OVERLAY_W - GAME_WIDTH) // 2
-        OFFSET_Y = (OVERLAY_H - GAME_HEIGHT) // 2
-        dascreen.fill(BLACK)
-        dascreen.blit(overlay, (-(OVERLAY_W-WIN_W)//2, -(OVERLAY_H-WIN_H)//2))
-        pygame.display.flip()    # update whole screen at start
+    OFFSET_X = (OVERLAY_W - GAME_WIDTH) // 2
+    OFFSET_Y = (OVERLAY_H - GAME_HEIGHT) // 2
 
     windowresized = True    # first time update (flip) everything
     while run:
@@ -927,6 +922,10 @@ def main():
             if event.type == pygame.VIDEORESIZE:
                 windowresized = True
 
+            if event.type == pygame.ACTIVEEVENT:
+                # event.gain == 1 means focus is back.
+                if fullscreen and event.gain == 1:
+                    windowresized = True
 
             # pausing
             if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
@@ -965,9 +964,10 @@ def main():
 
 
         # update game logic
+
         current_time = pygame.time.get_ticks()
 
-        # Toggle visibility every 180ms
+        # Toggle score visibility every 180ms
         # (current_time // 180) increments every 180ms.
         # Using % 2 creates a steady alternating True/False cycle.
         if (current_time // (360 if easyblink else 180)) % 2 == 0 and game_state == 'PLAYING' and not paused:
@@ -1045,7 +1045,6 @@ def main():
                 # else delay is still on, do nothing
 
 
-
             if ball.rect.y < TOP_OFFSET + 38:   # top wall
                 ball.velocity[1] = 4
                 brickkilldirection = 1
@@ -1101,6 +1100,7 @@ def main():
                     sound_paddle.play()
             if game_state == 'ATTRACT':
                 if ball.rect.top >= GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 16:
+                    brickkilldirection = -1
                     ball.velocity[1] = -abs(ball.velocity[1])
                     if not authentic:
                         # vary the x-velocity a bit so that attract mode bouncing is little more interesting
@@ -1207,7 +1207,6 @@ def main():
                         else:
                             # traditional end: do nothing, no happy end. all lives must be lost before game ends
                             pass
-
 
         # --- DRAWING
         # on the game area (screen)
@@ -1316,11 +1315,8 @@ def main():
             elif not authentic:
                 draw_colored_starttext((starttext_visible-current_time) // 50)
 
-
         if dotextoverlay:
             screen.blit(textoverlay, (WALL_WIDTH + 46, TOP_OFFSET + 83))
-
-        WIN_W, WIN_H = dascreen.get_size()
 
         if not fullscreen or not overlay:
             if windowresized:
@@ -1328,6 +1324,14 @@ def main():
 
         GAME_W = GAME_WIDTH
         GAME_H = GAME_HEIGHT
+        # get window size
+        if windowresized:
+            WIN_W, WIN_H = dascreen.get_size()
+
+        if dooverlay and fullscreen and windowresized:
+            dascreen.fill(BLACK)
+            # game surface to middle of the screen
+            dascreen.blit(overlay, (-(OVERLAY_W-WIN_W)//2, -(OVERLAY_H-WIN_H)//2))
 
         scr = screen
         if mini:
@@ -1351,16 +1355,19 @@ def main():
         if not fullscreen:
             if windowresized:
                 pygame.display.flip()   # update all, because user can resize the window
-                windowresized = False
             else:
                 # update only game surface area of the window
                 pygame.display.update(screen.get_rect().move((OFFSET_X - (OVERLAY_W-WIN_W)//2, OFFSET_Y - (OVERLAY_H-WIN_H)//2)))
         else:
             if overlayname == 'breakouta':
                 dascreen.blit(overlay, (-(OVERLAY_W-WIN_W)//2, -(OVERLAY_H-WIN_H)//2))
-            pygame.display.update(screen.get_rect().move((OFFSET_X - (OVERLAY_W-WIN_W)//2, OFFSET_Y - (OVERLAY_H-WIN_H)//2)))
+            if windowresized:
+                pygame.display.flip()
+            else:
+                pygame.display.update(screen.get_rect().move((OFFSET_X - (OVERLAY_W-WIN_W)//2, OFFSET_Y - (OVERLAY_H-WIN_H)//2)))
         if not fullfps:
             clock.tick(FPS)
+        windowresized = False
 
     pygame.quit()
 

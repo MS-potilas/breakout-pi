@@ -650,24 +650,24 @@ class Paddle(pygame.sprite.Sprite):
         self.color = color
         self.image = pygame.Surface([PADDLE_WIDTH, PADDLE_HEIGHT])
         self.rect = self.image.get_rect()
-        self.paddle_shrunk = False
+        self.shrunk = False
         self.original_width = self.rect.width
         drawSoftRect(self.image, self.rect.width, self.rect.height, self.color)
 
     def grow(self):
-        if self.paddle_shrunk:
+        if self.shrunk:
             old_center = self.rect.center
             self.image = pygame.transform.scale(paddle.image, (self.original_width, self.rect.height))
-            self.paddle_shrunk = False
+            self.shrunk = False
             self.rect.width = self.original_width
             self.rect.center = old_center
             drawSoftRect(self.image, self.rect.width, self.rect.height, self.color)
 
     def shrink(self):
-        if not self.paddle_shrunk:
+        if not self.shrunk:
             old_center = self.rect.center
             self.image = pygame.transform.scale(paddle.image, (self.original_width//2, self.rect.height))
-            self.paddle_shrunk = True
+            self.shrunk = True
             self.rect.width = self.original_width // 2
             self.rect.center = old_center
             drawSoftRect(self.image, self.rect.width, self.rect.height, self.color)
@@ -1004,7 +1004,11 @@ def main():
             if aiplay and not ball.rect.colliderect(paddle.rect) and ball.rect.bottom >= paddle.rect.top:
                 ai_target = 0
 
-            if (game_state == "ATTRACT" or aiplay) and not paused:
+            if not paused:
+                if not waiting_for_serve and serve_delay_timer == 0:
+                    ball.update()
+
+            if aiplay and not paused:
                 if ball.rect.centery > GAME_HEIGHT * 0.50 and ball.velocity[1] > 0:
                     AI_SPEED = PADDLE_SPEED # max speed per frame
                 elif ball.rect.centery > GAME_HEIGHT * 0.40 and ball.velocity[1] > 0:
@@ -1016,8 +1020,6 @@ def main():
                 if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] < 0:
                     AI_SPEED = 0
 
-                if AI_SPEED and ball.velocity[1] > 0:   # keep up with ball movement
-                    paddle.rect.x += ball.velocity[0]
                 # calculate distance between ball and paddle centers
                 distance = ball.rect.centerx + ai_target - paddle.rect.centerx
 
@@ -1026,6 +1028,7 @@ def main():
                 else:
                     # use full speed. np.sign(distance) returns -1 or 1 (or 0)
                     paddle.rect.x += int(np.sign(distance) * AI_SPEED)
+
             # Prevent Paddle From Leaving Screen Boundaries
             # original let the paddle go a little bit inside the wall, so do we:
             if paddle.rect.left < WALL_WIDTH // 2:
@@ -1041,12 +1044,9 @@ def main():
                     serve_delay_timer = 0
                 # else delay is still on, do nothing
 
-            if not paused:
-                if not waiting_for_serve and serve_delay_timer == 0:
-                    ball.update()
 
-            if ball.rect.y < TOP_OFFSET + 38:
-                #ball.velocity[1] = abs(ball.velocity[1])
+
+            if ball.rect.y < TOP_OFFSET + 38:   # top wall
                 ball.velocity[1] = 4
                 brickkilldirection = 1
                 if game_state == 'PLAYING':
@@ -1054,21 +1054,17 @@ def main():
                         player_data[current_player]["paddle_shrunk"] = True
                         # Halve the paddle width
                         paddle.shrink()
-
-                    #sfx_channel.play(sound_wall)
                     sound_wall.play()
 
 
             if ball.rect.x >= GAME_WIDTH - WALL_WIDTH - 10:
                 ball.velocity[0] = -abs(ball.velocity[0])
                 if game_state == 'PLAYING':
-                    #sfx_channel.play(sound_wall)
                     sound_wall.play()
 
             if ball.rect.x <= WALL_WIDTH:
                 ball.velocity[0] = abs(ball.velocity[0])
                 if game_state == 'PLAYING':
-                    #sfx_channel.play(sound_wall)
                     sound_wall.play()
 
             # if ball missed:
@@ -1084,6 +1080,9 @@ def main():
                     # 2. Calculate the exact intersection ratio (0.0 to 1.0)
                     hit_position = (ball.rect.centerx - paddle.rect.x) / paddle.rect.width
 
+                    if aiplay and paddle.shrunk:
+                        hit_position += random.uniform(-0.5,0.5)
+
                     # 3. Apply the strict 1976 hardware horizontal speed steps
                     if hit_position < 0.25:
                         ball.velocity[0] = -7  # Far Left: Sharp shallow angle outward
@@ -1096,10 +1095,9 @@ def main():
 
                     # when ai plays, vary the "hitting target point" like this, otherwise ai plays "too good"
                     if aiplay:
-                        ai_target = random.randint(-paddle.rect.width//2, paddle.rect.width//2)
+                        ai_target = random.choice([-paddle.rect.width//2, 0, 0, paddle.rect.width//2])
 
                     brickkilldirection = -1
-                    #sfx_channel.play(sound_paddle)
                     sound_paddle.play()
             if game_state == 'ATTRACT':
                 if ball.rect.top >= GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 16:

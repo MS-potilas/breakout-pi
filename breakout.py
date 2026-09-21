@@ -12,6 +12,7 @@ print(" = = = = = = = = = = = = = = = = = = = = = = = = = ")
 
 STARTTEXT = "BREAKOUT-PI"
 STARTTEXT_DELAY = 3400
+TITLE = "Breakout-Pi"
 
 # change working dir to same as the script's
 abspath_ = os.path.abspath(__file__)
@@ -247,7 +248,7 @@ BLUE = (0, 130, 198)
 # create game surface
 screen = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
 
-pygame.display.set_caption("Breakout")
+pygame.display.set_caption(TITLE)
 
 
 # better colors
@@ -575,7 +576,7 @@ soundscales = {
     'BLUES': [sound_Eb5, sound_Eb5, sound_G5, sound_G5, sound_A5, sound_A5, sound_Bb5, sound_Bb5],
     'PENTATONIC': [sound_D5, sound_D5, sound_E5, sound_E5, sound_G5, sound_G5, sound_A5, sound_A5],
     'FULL MAJOR': [sound_C5, sound_D5, sound_E5, sound_F5, sound_G5, sound_A5, sound_B5, sound_C6],
-    'RANDOM': [sound_C5, sound_Db5, sound_D5, sound_Eb5, sound_E5, sound_F5, sound_Gb5, sound_G5, sound_Ab5, sound_A5, sound_Bb5, sound_B5, sound_C6],
+    'RANDOM': [sound_C5, sound_Db5, sound_D5, sound_Eb5, sound_E5, sound_F5, sound_Gb5, sound_G5],
     'MONOTONIC': [sound_C5, sound_C5, sound_C5, sound_C5, sound_C5, sound_C5, sound_C5, sound_C5],
 }
 
@@ -843,35 +844,37 @@ if not aiplay:
 
 
 
-# brick hit multi-beeps (depending on brick point value)
-BEEP_EVENT = pygame.USEREVENT + 1
+# brick hit multi-sounds (depending on brick point value)
+BRICK_SOUND_EVENT = pygame.USEREVENT + 1
 
-# how many brick hit beeps left
-beeps_remaining = 0
+# how many brick hit brick_sounds left
+brick_sounds_remaining = 0
 
 # single channel for brick sounds
 sfx_channel = pygame.mixer.Channel(0)
 
-current_beep = None
+current_brick_sound = None
 
 def trigger_brick_sound(points, tone):
-    global beeps_remaining, current_beep
-    current_beep = tone
-    beeps_remaining = points
+    global brick_sounds_remaining, current_brick_sound
+    current_brick_sound = tone
+    brick_sounds_remaining = points
     # repeat sound using timer
-    pygame.time.set_timer(BEEP_EVENT, 60)
-    # play first beep now
-    play_single_beep()
+    pygame.time.set_timer(BRICK_SOUND_EVENT, 60)
+    # play first brick_sound now
+    play_single_brick_sound()
 
-def play_single_beep():
-    global beeps_remaining, current_beep
-    if beeps_remaining > 0:
-        if current_beep:
-            sfx_channel.play(current_beep)
-        beeps_remaining -= 1
-    if not beeps_remaining:
+def play_single_brick_sound():
+    global brick_sounds_remaining, current_brick_sound
+    if brick_sounds_remaining > 0:
+        if soundscaleindex == 6: # RANDOM
+            current_brick_sound = random.choice(soundscales[soundscale])
+        if current_brick_sound:
+            sfx_channel.play(current_brick_sound)
+        brick_sounds_remaining -= 1
+    if not brick_sounds_remaining:
         # turn timer off
-        pygame.time.set_timer(BEEP_EVENT, 0)
+        pygame.time.set_timer(BRICK_SOUND_EVENT, 0)
 
 
 
@@ -915,8 +918,8 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            if event.type == BEEP_EVENT:
-                play_single_beep()
+            if event.type == BRICK_SOUND_EVENT:
+                play_single_brick_sound()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 run = False
             if event.type == pygame.KEYDOWN and (event.key == pygame.K_c or event.key == pygame.K_RETURN) and pygame.key.get_mods() & pygame.KMOD_CTRL:
@@ -1003,7 +1006,7 @@ def main():
 
             if (game_state == "ATTRACT" or aiplay) and not paused:
                 if ball.rect.centery > GAME_HEIGHT * 0.50 and ball.velocity[1] > 0:
-                    AI_SPEED = PADDLE_SPEED + 2 # max speed per frame
+                    AI_SPEED = PADDLE_SPEED # max speed per frame
                 elif ball.rect.centery > GAME_HEIGHT * 0.40 and ball.velocity[1] > 0:
                     AI_SPEED = PADDLE_SPEED - 2
                 elif ball.rect.centery > GAME_HEIGHT * 0.30:
@@ -1013,6 +1016,8 @@ def main():
                 if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] < 0:
                     AI_SPEED = 0
 
+                if AI_SPEED and ball.velocity[1] > 0:   # keep up with ball movement
+                    paddle.rect.x += ball.velocity[0]
                 # calculate distance between ball and paddle centers
                 distance = ball.rect.centerx + ai_target - paddle.rect.centerx
 
@@ -1083,15 +1088,15 @@ def main():
                     if hit_position < 0.25:
                         ball.velocity[0] = -7  # Far Left: Sharp shallow angle outward
                     elif hit_position < 0.50:
-                        ball.velocity[0] = -4  # Inner Left: Soft vertical angle outward
+                        ball.velocity[0] = -3  # Inner Left: Soft vertical angle outward
                     elif hit_position < 0.75:
-                        ball.velocity[0] = 4   # Inner Right: Soft vertical angle outward
+                        ball.velocity[0] = 3   # Inner Right: Soft vertical angle outward
                     else:
                         ball.velocity[0] = 7   # Far Right: Sharp shallow angle outward
 
                     # when ai plays, vary the "hitting target point" like this, otherwise ai plays "too good"
                     if aiplay:
-                        ai_target = random.randint(-paddle.rect.width//3, paddle.rect.width//3)
+                        ai_target = random.randint(-paddle.rect.width//2, paddle.rect.width//2)
 
                     brickkilldirection = -1
                     #sfx_channel.play(sound_paddle)
@@ -1170,10 +1175,10 @@ def main():
                     pitch = 7 - brick.row
 
                     if soundscaleindex == 6: # RANDOM
-                        beep = random.choice(soundscales[soundscale])
+                        brick_sound = random.choice(soundscales[soundscale])
                     else:
-                        beep = soundscales[soundscale][pitch]
-                    trigger_brick_sound(brick.point_value, beep)
+                        brick_sound = soundscales[soundscale][pitch]
+                    trigger_brick_sound(brick.point_value, brick_sound)
                     brick.kill()
                     collision_detected = True
 

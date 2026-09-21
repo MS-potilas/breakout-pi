@@ -623,8 +623,8 @@ def drawSoftRect(surface, w, h, color, rounded = False):
     if not rounded:
         pygame.draw.rect(surface, daacolor, [0, 0, w, h])
     else:
-        pygame.draw.rect(surface, daacolor, [0, 1, w, w])
-        pygame.draw.rect(surface, daacolor, [1, 0, h-2, h])
+        pygame.draw.rect(surface, daacolor, [0, 1, w, h-2])
+        pygame.draw.rect(surface, daacolor, [1, 0, w-2, h])
 
     pygame.draw.rect(surface, color, [1, 1, w-2, h-2])
 

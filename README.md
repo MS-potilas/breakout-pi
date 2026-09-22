@@ -23,14 +23,14 @@ The game is designed to be highly faithful to its historic TTL predecessor, emul
 All quality-of-life enhancements can be customized or toggled off completely via command-line options:
 
 *   **New Happy End:** The game finishes gracefully when the final brick is destroyed, leaving your score on screen (disable via `‑‑nohappyend`).
-*   **Tuned Audio Scales:** Collision sounds are tuned to a chromatic scale. The default is a monotonic sounds, but it can be changed to Major, Minor, Rock 'n' Roll, Blues, Pentatonic, Full Major (8 full notes for the 8 brick rows), or a chaotic Random mode (C6–C7 range).
+*   **Tuned Audio Scales:** Collision sounds are tuned to a chromatic scale. The default is a monotonic sounds, but it can be changed to Major, Minor, Rock 'n' Roll, Blues, Pentatonic, Full Major (8 full notes for the 8 brick rows), or a chaotic Random mode (C5–G5 range).
 *   **Centered Brick Wall:** The brick wall is perfectly centered by shifting it 2 pixels to the right. The original 1976 cabinet left the wall slightly off-center (disable via `‑‑nowallshift`).
 *   **Text Overlays:** Informative overlays clarify what the single-digit numbers mean on the display (disable via `‑‑notextoverlay`).
 *   **Easy Blink Mode:** Significantly reduces the intensity of the flashing score counter if the arcade-accurate blinking bothers your eyes (enable via `‑‑easyblink`).
 *   **Big Paddle Mode:** Doubles the paddle width for a more forgiving, yet still challenging, experience (enable via `‑‑bigpaddle`).
 *   **Expanded Inputs:** Added native mouse, keyboard, and joystick/controller support.
 *   **Pause Function:** Ability to pause the action at any time (disable via `‑‑nopause`).
-*   **Full FPS Mode:** Allows unlocking the frame rate to run the game engine in turbo mode, as fast as possible.
+*   **Turbo Mode:** Makes the game to run faster than normal.
 *   **AI Play Mode:** Built-in bot that plays the game automatically.
 
 ### ⌨️ Controls
@@ -40,7 +40,7 @@ All quality-of-life enhancements can be customized or toggled off completely via
 *   **Mouse / Keyboard (Arrow Keys) / Joystick:** Move the paddle left or right.
 *   **P:** Pause the game (unless `‑‑nopause` is used).
 *   **S:** Switch to the next musical audio scale (**Shift + S** switches to the previous scale).
-*   **F:** Toggle between Full FPS turbo mode and the standard 60 FPS lock.
+*   **T:** Toggle between Turbo Mode and the standard game speed.
 *   **Esc:** Exit the game.
 
 ## Screenshots
@@ -142,7 +142,7 @@ You can completely customize your Breakout-Pi experience, tweak the visual style
 | `‑‑noservelight` | Hides the "SERVE" indicator light on the screen. |
 | `‑‑nowallshift` | Disables the 2-pixel rightward shift of the brick wall. In the original 1976 arcade cabinet, the wall was slightly off-center. By default, Breakout-Pi centers the wall, but this flag restores the original off-center layout. |
 | `‑‑bigpaddle` | Doubles the width of your paddle. Perfect if you find the original 1976 difficulty brutal. The game remains challenging, but clearing the wall becomes much more achievable! |
-| `--fullfps` | Launches the game in full FPS turbo mode. |
+| `--turbo` | Launches the game in turbo mode, great with AI play. |
 | `--aiplay` | Enables the built-in AI bot to play the game automatically. You must serve the ball, AI only moves the paddle. Because Ai tries to be imperfect, it sometimes misses the ball. *Tip: You can use the arrow keys or a joystick (but not the mouse) to interfere and make the AI miss!* |
 
 ### 🎵 Audio Scale Options

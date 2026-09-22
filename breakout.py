@@ -888,6 +888,7 @@ def main():
     clock = pygame.time.Clock()
     run = True
     paused = False
+    score_visible = True
 
     reset_to_attract()
 
@@ -900,316 +901,334 @@ def main():
     OFFSET_X = (OVERLAY_W - GAME_WIDTH) // 2
     OFFSET_Y = (OVERLAY_H - GAME_HEIGHT) // 2
 
+    accumulated_time = 0
+    MS_PER_FRAME = 1000.0 / FPS
+
     windowresized = True    # first time update (flip) everything
     while run:
-        # get events, first joystick (using class)
-        joysticks.get_joy()
-        if len(joysticks.buttons):
-            # upper buttons (including start & select, hopefully):
-            for j in range(6,15):
-                if j in joysticks.buttons:
+        # Get elapsed time in milliseconds from the last frame
+        delta_time = clock.tick()
+        accumulated_time += delta_time
+
+        # Update game logic at a fixed rate (avoids spiral of death with a cap)
+        max_updates = 5  # Prevent freeze-out if lagging severely
+        updates = 0
+        if fullfps:
+            accumulated_time = MS_PER_FRAME
+        # UPDATE GAME  LOGIC
+        while accumulated_time >= MS_PER_FRAME and updates < max_updates:
+            # get events, first joystick (using class)
+            joysticks.get_joy()
+            if len(joysticks.buttons):
+                # upper buttons (including start & select, hopefully):
+                for j in range(6,15):
+                    if j in joysticks.buttons:
+                        run = False
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
                     run = False
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-            if event.type == BRICK_SOUND_EVENT:
-                play_single_brick_sound()
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                run = False
-            if event.type == pygame.KEYDOWN and (event.key == pygame.K_c or event.key == pygame.K_RETURN) and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                run = False
-            if event.type == pygame.VIDEORESIZE:
-                windowresized = True
-
-            if event.type == pygame.ACTIVEEVENT:
-                # event.gain == 1 means focus is back.
-                if fullscreen and event.gain == 1:
+                if event.type == BRICK_SOUND_EVENT:
+                    play_single_brick_sound()
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    run = False
+                if event.type == pygame.KEYDOWN and (event.key == pygame.K_c or event.key == pygame.K_RETURN) and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                    run = False
+                if event.type == pygame.VIDEORESIZE:
                     windowresized = True
 
-            # pausing
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
-                if paused:
-                    paused = False
-                elif not nopause and game_state == "PLAYING":
-                    paused = True
+                if event.type == pygame.ACTIVEEVENT:
+                    # event.gain == 1 means focus is back.
+                    if fullscreen and event.gain == 1:
+                        windowresized = True
 
-            # switch to next sound scale
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_s and not noscaleswitch:
-                soundscaleindex = (soundscaleindex + (1 if not (pygame.key.get_mods() & pygame.KMOD_SHIFT) else -1)) % len(list(soundscales))
-                soundscale = list(soundscales)[soundscaleindex]
-                soundscale_visible = pygame.time.get_ticks() + 900
+                # pausing
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                    if paused:
+                        paused = False
+                    elif not nopause and game_state == "PLAYING":
+                        paused = True
 
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
-                fullfps = not fullfps
+                # switch to next sound scale
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_s and not noscaleswitch:
+                    soundscaleindex = (soundscaleindex + (1 if not (pygame.key.get_mods() & pygame.KMOD_SHIFT) else -1)) % len(list(soundscales))
+                    soundscale = list(soundscales)[soundscaleindex]
+                    soundscale_visible = pygame.time.get_ticks() + 900
 
-
-            if game_state == "PLAYING" and waiting_for_serve and not paused:
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE or event.type == pygame.MOUSEBUTTONDOWN or len(joysticks.buttons):
-                    # Player pressed "serve ball" button
-                    waiting_for_serve = False
-
-                    # start serve delay timer
-                    serve_delay_timer = pygame.time.get_ticks() + get_serve_delay()
-
-            # select 1 or 2 player game in attract mode
-            if game_state == "ATTRACT":
-                if event.type == pygame.KEYDOWN and (event.key == pygame.K_1 or event.key == pygame.K_SPACE or event.key == pygame.K_RETURN) or event.type == pygame.MOUSEBUTTONDOWN or len(joysticks.buttons):
-                    # start a 1-player game
-                    start_new_game(two_player_mode=False)
-
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_2:
-                    # start a 2-player game
-                    start_new_game(two_player_mode=True)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_f:
+                    fullfps = not fullfps
 
 
-        # update game logic
+                if game_state == "PLAYING" and waiting_for_serve and not paused:
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE or event.type == pygame.MOUSEBUTTONDOWN or len(joysticks.buttons):
+                        # Player pressed "serve ball" button
+                        waiting_for_serve = False
 
-        current_time = pygame.time.get_ticks()
+                        # start serve delay timer
+                        serve_delay_timer = pygame.time.get_ticks() + get_serve_delay()
 
-        # Toggle score visibility every 180ms
-        # (current_time // 180) increments every 180ms.
-        # Using % 2 creates a steady alternating True/False cycle.
-        if (current_time // (360 if easyblink else 180)) % 2 == 0 and game_state == 'PLAYING' and not paused:
-            score_visible = False
-        else:
-            score_visible = True
+                # select 1 or 2 player game in attract mode
+                if game_state == "ATTRACT":
+                    if event.type == pygame.KEYDOWN and (event.key == pygame.K_1 or event.key == pygame.K_SPACE or event.key == pygame.K_RETURN) or event.type == pygame.MOUSEBUTTONDOWN or len(joysticks.buttons):
+                        # start a 1-player game
+                        start_new_game(two_player_mode=False)
 
-        # Blink serve light every 250ms (500 ms cycle)
-        if ((current_time // 500) % 2 == 0 or game_state != 'PLAYING' or not waiting_for_serve) and not paused:
-            serve_light_visible = False
-        else:
-            serve_light_visible = True
-
-
-        if game_state in ["ATTRACT", "PLAYING"]:
-
-            if game_state == "PLAYING" and not paused:
-                # joystick input
-                if joysticks.move.x:            # -1...1
-                    paddle.rect.x += joysticks.move.x * PADDLE_SPEED
-
-                # Handle Keyboard Inputs (Changes position by a fixed step)
-                keys = pygame.key.get_pressed()
-                if keys[pygame.K_LEFT]:
-                    paddle.rect.x -= PADDLE_SPEED
-                if keys[pygame.K_RIGHT]:
-                    paddle.rect.x += PADDLE_SPEED
-                # Handle Mouse Inputs (Changes position by relative movement)
-                # get_rel() returns (delta_x, delta_y) since the last time it was called
-                if not aiplay:
-                    mouse_dx, mouse_dy = pygame.mouse.get_rel()
-                    paddle.rect.x += mouse_dx
-
-            if aiplay and not ball.rect.colliderect(paddle.rect) and ball.rect.bottom >= paddle.rect.top:
-                ai_target = 0
-
-            if not paused:
-                if not waiting_for_serve and serve_delay_timer == 0:
-                    ball.update()
-
-            if aiplay and not paused:
-                if ball.rect.centery > GAME_HEIGHT * 0.50 and ball.velocity[1] > 0:
-                    AI_SPEED = PADDLE_SPEED # max speed per frame
-                elif ball.rect.centery > GAME_HEIGHT * 0.40 and ball.velocity[1] > 0:
-                    AI_SPEED = PADDLE_SPEED - 2
-                elif ball.rect.centery > GAME_HEIGHT * 0.30:
-                    AI_SPEED = PADDLE_SPEED / 2
-                else:
-                    AI_SPEED = 0
-                if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] < 0:
-                    AI_SPEED = 0
-
-                # calculate distance between ball and paddle centers
-                distance = ball.rect.centerx + ai_target - paddle.rect.centerx
-
-                if abs(distance) < AI_SPEED:
-                    paddle.rect.centerx = ball.rect.centerx + ai_target
-                else:
-                    # use full speed. np.sign(distance) returns -1 or 1 (or 0)
-                    paddle.rect.x += int(np.sign(distance) * AI_SPEED)
-
-            # Prevent Paddle From Leaving Screen Boundaries
-            # original let the paddle go a little bit inside the wall, so do we:
-            if paddle.rect.left < WALL_WIDTH // 2:
-                paddle.rect.left = WALL_WIDTH // 2
-            if paddle.rect.right > GAME_WIDTH - WALL_WIDTH // 2:
-                paddle.rect.right = GAME_WIDTH - WALL_WIDTH // 2
-
-            # check, if serve delay timer is on
-            if serve_delay_timer > 0:
-                if current_time >= serve_delay_timer:
-                    # delay is over. get initial ball speed, random
-                    ball.velocity = initial_ball_speed()
-                    serve_delay_timer = 0
-                # else delay is still on, do nothing
+                    elif event.type == pygame.KEYDOWN and event.key == pygame.K_2:
+                        # start a 2-player game
+                        start_new_game(two_player_mode=True)
 
 
-            if ball.rect.y < TOP_OFFSET + 38:   # top wall
-                ball.velocity[1] = 4
-                brickkilldirection = 1
-                if game_state == 'PLAYING':
-                    if not player_data[current_player]["paddle_shrunk"]:
-                        player_data[current_player]["paddle_shrunk"] = True
-                        # Halve the paddle width
-                        paddle.shrink()
-                    sound_wall.play()
+            # update game logic
+
+            current_time = pygame.time.get_ticks()
+
+            # Toggle score visibility every 180ms
+            # (current_time // 180) increments every 180ms.
+            # Using % 2 creates a steady alternating True/False cycle.
+            if (current_time // (360 if easyblink else 180)) % 2 == 0 and game_state == 'PLAYING' and not paused:
+                score_visible = False
+            else:
+                score_visible = True
+
+            # Blink serve light every 250ms (500 ms cycle)
+            if ((current_time // 500) % 2 == 0 or game_state != 'PLAYING' or not waiting_for_serve) and not paused:
+                serve_light_visible = False
+            else:
+                serve_light_visible = True
 
 
-            if ball.rect.x >= GAME_WIDTH - WALL_WIDTH - 10:
-                ball.velocity[0] = -abs(ball.velocity[0])
-                if game_state == 'PLAYING':
-                    sound_wall.play()
+            if game_state in ["ATTRACT", "PLAYING"]:
 
-            if ball.rect.x <= WALL_WIDTH:
-                ball.velocity[0] = abs(ball.velocity[0])
-                if game_state == 'PLAYING':
-                    sound_wall.play()
+                if game_state == "PLAYING" and not paused:
+                    # joystick input
+                    if joysticks.move.x:            # -1...1
+                        paddle.rect.x += joysticks.move.x * PADDLE_SPEED
 
-            # if ball missed:
-            if game_state == 'PLAYING':
-                if ball.rect.top > GAME_HEIGHT:
-                    handle_ball_lost()
+                    # Handle Keyboard Inputs (Changes position by a fixed step)
+                    keys = pygame.key.get_pressed()
+                    if keys[pygame.K_LEFT]:
+                        paddle.rect.x -= PADDLE_SPEED
+                    if keys[pygame.K_RIGHT]:
+                        paddle.rect.x += PADDLE_SPEED
+                    # Handle Mouse Inputs (Changes position by relative movement)
+                    # get_rel() returns (delta_x, delta_y) since the last time it was called
+                    if not aiplay:
+                        mouse_dx, mouse_dy = pygame.mouse.get_rel()
+                        paddle.rect.x += mouse_dx
 
-            if game_state == 'PLAYING':
-                if ball.rect.colliderect(paddle.rect) and ball.velocity[1] > 0:
-                    # 1. Force the strict, un-normalized vertical bounce flip
-                    ball.velocity[1] = -abs(ball.velocity[1])  # Your standard Y velocity baseline
+                if aiplay and not ball.rect.colliderect(paddle.rect) and ball.rect.bottom >= paddle.rect.top:
+                    ai_target = 0
 
-                    # 2. Calculate the exact intersection ratio (0.0 to 1.0)
-                    hit_position = (ball.rect.centerx - paddle.rect.x) / paddle.rect.width
+                if not paused:
+                    if not waiting_for_serve and serve_delay_timer == 0:
+                        ball.update()
 
-                    if aiplay and paddle.shrunk:
-                        hit_position += random.uniform(-0.5,0.5)
-
-                    # 3. Apply the strict 1976 hardware horizontal speed steps
-                    if hit_position < 0.25:
-                        ball.velocity[0] = -7  # Far Left: Sharp shallow angle outward
-                    elif hit_position < 0.50:
-                        ball.velocity[0] = -3  # Inner Left: Soft vertical angle outward
-                    elif hit_position < 0.75:
-                        ball.velocity[0] = 3   # Inner Right: Soft vertical angle outward
+                if aiplay and not paused:
+                    if ball.rect.centery > GAME_HEIGHT * 0.50 and ball.velocity[1] > 0:
+                        AI_SPEED = PADDLE_SPEED # max speed per frame
+                    elif ball.rect.centery > GAME_HEIGHT * 0.40 and ball.velocity[1] > 0:
+                        AI_SPEED = PADDLE_SPEED - 2
+                    elif ball.rect.centery > GAME_HEIGHT * 0.30:
+                        AI_SPEED = PADDLE_SPEED / 2
                     else:
-                        ball.velocity[0] = 7   # Far Right: Sharp shallow angle outward
+                        AI_SPEED = 0
+                    if ball.rect.centery > GAME_HEIGHT * 0.60 and ball.velocity[1] < 0:
+                        AI_SPEED = 0
 
-                    # when ai plays, vary the "hitting target point" like this, otherwise ai plays "too good"
-                    if aiplay:
-                        ai_target = random.choice([-paddle.rect.width//2, 0, 0, paddle.rect.width//2])
+                    # calculate distance between ball and paddle centers
+                    distance = ball.rect.centerx + ai_target - paddle.rect.centerx
 
-                    brickkilldirection = -1
-                    sound_paddle.play()
-            if game_state == 'ATTRACT':
-                if ball.rect.top >= GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 16:
-                    brickkilldirection = -1
-                    ball.velocity[1] = -abs(ball.velocity[1])
-                    if not authentic:
-                        # vary the x-velocity a bit so that attract mode bouncing is little more interesting
-                        # subtle variation
-                        ball.velocity[0] = math.copysign(random.randint(2,4), ball.velocity[0])
-
-
-            csize = 0
-            collision_count = 0
-            brick = None
-            crow = -1
-            if ball.velocity[1] < 0:
-                crow = 8
-            if np.sign(ball.velocity[1]) == brickkilldirection:
-                for b in all_bricks:
-                    if ball.rect.colliderect(b.rect):
-                        collision_count += 1
-                        ccsize = b.rect.clip(ball.rect).width * b.rect.clip(ball.rect).height
-                        ccrow = b.row
-                        # select brick, that is on the first row from the ball's direction, and the biggest collider on the same row
-                        if ball.velocity[1] < 0 and ccrow < crow or ball.velocity[1] > 0 and ccrow > crow or ccrow == crow and ccsize > csize:
-                            brick = b
-                            crow = ccrow
-                            csize = ccsize
-
-            collision_detected = False
-            if collision_count:
-                if game_state == 'PLAYING':
-                    player_data[current_player]["score"] += brick.point_value
-                    player_data[current_player]["hit_counter"] += 1
-
-                # Check row color for speed-up
-                # (Assuming brick.color holds the color tuple or name)
-                if brick.colorstrip == S_RED or brick.colorstrip == S_ORANGE:
-                    player_data[current_player]["highest_row_hit"] = True
-
-                # Standard TTL Speed Step calculation
-                # Base velocity is 4. We adjust the baseline dynamically:
-                base_y_speed = 4
-                if player_data[current_player]["hit_counter"] >= 4:
-                    base_y_speed = 6  # Intermediate speed 1
-                if player_data[current_player]["hit_counter"] >= 12:
-                    base_y_speed = 8  # Intermediate speed 2
-                if player_data[current_player]["highest_row_hit"] and game_state == 'PLAYING':
-                    base_y_speed = 10  # Maximum speed
-
-                # Apply the updated Y speed (preserving the current up/down direction)
-                if ball.velocity[1] > 0:
-                    ball.velocity[1] = base_y_speed
-                else:
-                    ball.velocity[1] = -base_y_speed
-
-                # Handle standard bounce axis inversion
-                overlap_x = min(ball.rect.right, brick.rect.right) - max(ball.rect.left, brick.rect.left)
-                overlap_y = min(ball.rect.bottom, brick.rect.bottom) - max(ball.rect.top, brick.rect.top)
-
-                # always reverse y direction
-                ball.velocity[1] *= -1
-                # if we're hitting more than one brick, just back off!
-                if collision_count > 1:
-                    ball.velocity[0] *= -1
-                elif overlap_x <= overlap_y:
-                    # side hit: reverse x direction only if ball is moving towards brick
-                    if (ball.velocity[0] > 0 and ball.rect.centerx < brick.rect.centerx) or \
-                       (ball.velocity[0] < 0 and ball.rect.centerx > brick.rect.centerx):
-                        ball.velocity[0] *= -1
-
-                # Trigger the correct pitch based on the point tier
-                if game_state == 'PLAYING':
-                    pitch = 7 - brick.row
-
-                    if soundscaleindex == 6: # RANDOM
-                        brick_sound = random.choice(soundscales[soundscale])
+                    if abs(distance) < AI_SPEED:
+                        paddle.rect.centerx = ball.rect.centerx + ai_target
                     else:
-                        brick_sound = soundscales[soundscale][pitch]
-                    trigger_brick_sound(brick.point_value, brick_sound)
-                    brick.kill()
-                    collision_detected = True
+                        # use full speed. np.sign(distance) returns -1 or 1 (or 0)
+                        paddle.rect.x += int(np.sign(distance) * AI_SPEED)
 
-            if collision_detected:
-                if len(all_bricks) == 0:
-                    # wall played through. which wall?
-                    if player_data[current_player]["current_wall"] == 1:
-                        player_data[current_player]["current_wall"] = 2
-                        rebuild_brick_wall()
-                        waiting_for_serve = False  # no serve, game just continues
+                # Prevent Paddle From Leaving Screen Boundaries
+                # original let the paddle go a little bit inside the wall, so do we:
+                if paddle.rect.left < WALL_WIDTH // 2:
+                    paddle.rect.left = WALL_WIDTH // 2
+                if paddle.rect.right > GAME_WIDTH - WALL_WIDTH // 2:
+                    paddle.rect.right = GAME_WIDTH - WALL_WIDTH // 2
 
-                    elif player_data[current_player]["current_wall"] == 2:
-                        if happyend:
-                            if is_two_player:
-                                # store empty bricks state
-                                player_data[current_player]["bricks_state"] = []
-                                # lives to zero (player has nothing to play anymore)
-                                player_data[current_player]["lives"] = 0
-                                # handle_ball_lost switches to another player, if lives left
-                                handle_ball_lost()
-                            else:
-                                # one player end with happy end:
-                                # go straight to attract, score _and_ ball number stays on screen
-                                game_state = "ATTRACT"
-                                # make the ball go slower
-                                ball.velocity = [ball.velocity[0],  math.copysign(4, ball.velocity[0])]  # base speed 4
-                                save_game_data()
+                # check, if serve delay timer is on
+                if serve_delay_timer > 0:
+                    if current_time >= serve_delay_timer:
+                        # delay is over. get initial ball speed, random
+                        ball.velocity = initial_ball_speed()
+                        serve_delay_timer = 0
+                    # else delay is still on, do nothing
+
+
+                if ball.rect.y < TOP_OFFSET + 38:   # top wall
+                    ball.velocity[1] = 4
+                    brickkilldirection = 1
+                    if game_state == 'PLAYING':
+                        if not player_data[current_player]["paddle_shrunk"]:
+                            player_data[current_player]["paddle_shrunk"] = True
+                            # Halve the paddle width
+                            paddle.shrink()
+                        sound_wall.play()
+
+
+                if ball.rect.x >= GAME_WIDTH - WALL_WIDTH - 10:
+                    ball.velocity[0] = -abs(ball.velocity[0])
+                    if game_state == 'PLAYING':
+                        sound_wall.play()
+
+                if ball.rect.x <= WALL_WIDTH:
+                    ball.velocity[0] = abs(ball.velocity[0])
+                    if game_state == 'PLAYING':
+                        sound_wall.play()
+
+                # if ball missed:
+                if game_state == 'PLAYING':
+                    if ball.rect.top > GAME_HEIGHT:
+                        handle_ball_lost()
+
+                if game_state == 'PLAYING':
+                    if ball.rect.colliderect(paddle.rect) and ball.velocity[1] > 0:
+                        # 1. Force the strict, un-normalized vertical bounce flip
+                        ball.velocity[1] = -abs(ball.velocity[1])  # Your standard Y velocity baseline
+
+                        # 2. Calculate the exact intersection ratio (0.0 to 1.0)
+                        hit_position = (ball.rect.centerx - paddle.rect.x) / paddle.rect.width
+
+                        if aiplay and paddle.shrunk:
+                            hit_position += random.uniform(-0.5,0.5)
+
+                        # 3. Apply the strict 1976 hardware horizontal speed steps
+                        if hit_position < 0.25:
+                            ball.velocity[0] = -7  # Far Left: Sharp shallow angle outward
+                        elif hit_position < 0.50:
+                            ball.velocity[0] = -3  # Inner Left: Soft vertical angle outward
+                        elif hit_position < 0.75:
+                            ball.velocity[0] = 3   # Inner Right: Soft vertical angle outward
                         else:
-                            # traditional end: do nothing, no happy end. all lives must be lost before game ends
-                            pass
+                            ball.velocity[0] = 7   # Far Right: Sharp shallow angle outward
 
-        # --- DRAWING
-        # on the game area (screen)
+                        # when ai plays, vary the "hitting target point" like this, otherwise ai plays "too good"
+                        if aiplay:
+                            ai_target = random.choice([-paddle.rect.width//2, 0, 0, paddle.rect.width//2])
+
+                        brickkilldirection = -1
+                        sound_paddle.play()
+                if game_state == 'ATTRACT':
+                    if ball.rect.top >= GAME_HEIGHT - PADDLE_Y_FROM_BOTTOM - 16:
+                        brickkilldirection = -1
+                        ball.velocity[1] = -abs(ball.velocity[1])
+                        if not authentic:
+                            # vary the x-velocity a bit so that attract mode bouncing is little more interesting
+                            # subtle variation
+                            ball.velocity[0] = math.copysign(random.randint(2,4), ball.velocity[0])
+
+
+                csize = 0
+                collision_count = 0
+                brick = None
+                crow = -1
+                if ball.velocity[1] < 0:
+                    crow = 8
+                if np.sign(ball.velocity[1]) == brickkilldirection:
+                    for b in all_bricks:
+                        if ball.rect.colliderect(b.rect):
+                            collision_count += 1
+                            ccsize = b.rect.clip(ball.rect).width * b.rect.clip(ball.rect).height
+                            ccrow = b.row
+                            # select brick, that is on the first row from the ball's direction, and the biggest collider on the same row
+                            if ball.velocity[1] < 0 and ccrow < crow or ball.velocity[1] > 0 and ccrow > crow or ccrow == crow and ccsize > csize:
+                                brick = b
+                                crow = ccrow
+                                csize = ccsize
+
+                collision_detected = False
+                if collision_count:
+                    if game_state == 'PLAYING':
+                        player_data[current_player]["score"] += brick.point_value
+                        player_data[current_player]["hit_counter"] += 1
+
+                    # Check row color for speed-up
+                    # (Assuming brick.color holds the color tuple or name)
+                    if brick.colorstrip == S_RED or brick.colorstrip == S_ORANGE:
+                        player_data[current_player]["highest_row_hit"] = True
+
+                    # Standard TTL Speed Step calculation
+                    # Base velocity is 4. We adjust the baseline dynamically:
+                    base_y_speed = 4
+                    if player_data[current_player]["hit_counter"] >= 4:
+                        base_y_speed = 6  # Intermediate speed 1
+                    if player_data[current_player]["hit_counter"] >= 12:
+                        base_y_speed = 8  # Intermediate speed 2
+                    if player_data[current_player]["highest_row_hit"] and game_state == 'PLAYING':
+                        base_y_speed = 10  # Maximum speed
+
+                    # Apply the updated Y speed (preserving the current up/down direction)
+                    if ball.velocity[1] > 0:
+                        ball.velocity[1] = base_y_speed
+                    else:
+                        ball.velocity[1] = -base_y_speed
+
+                    # Handle standard bounce axis inversion
+                    overlap_x = min(ball.rect.right, brick.rect.right) - max(ball.rect.left, brick.rect.left)
+                    overlap_y = min(ball.rect.bottom, brick.rect.bottom) - max(ball.rect.top, brick.rect.top)
+
+                    # always reverse y direction
+                    ball.velocity[1] *= -1
+                    # if we're hitting more than one brick, just back off!
+                    if collision_count > 1:
+                        ball.velocity[0] *= -1
+                    elif overlap_x <= overlap_y:
+                        # side hit: reverse x direction only if ball is moving towards brick
+                        if (ball.velocity[0] > 0 and ball.rect.centerx < brick.rect.centerx) or \
+                           (ball.velocity[0] < 0 and ball.rect.centerx > brick.rect.centerx):
+                            ball.velocity[0] *= -1
+
+                    # Trigger the correct pitch based on the point tier
+                    if game_state == 'PLAYING':
+                        pitch = 7 - brick.row
+
+                        if soundscaleindex == 6: # RANDOM
+                            brick_sound = random.choice(soundscales[soundscale])
+                        else:
+                            brick_sound = soundscales[soundscale][pitch]
+                        trigger_brick_sound(brick.point_value, brick_sound)
+                        brick.kill()
+                        collision_detected = True
+
+                if collision_detected:
+                    if len(all_bricks) == 0:
+                        # wall played through. which wall?
+                        if player_data[current_player]["current_wall"] == 1:
+                            player_data[current_player]["current_wall"] = 2
+                            rebuild_brick_wall()
+                            waiting_for_serve = False  # no serve, game just continues
+
+                        elif player_data[current_player]["current_wall"] == 2:
+                            if happyend:
+                                if is_two_player:
+                                    # store empty bricks state
+                                    player_data[current_player]["bricks_state"] = []
+                                    # lives to zero (player has nothing to play anymore)
+                                    player_data[current_player]["lives"] = 0
+                                    # handle_ball_lost switches to another player, if lives left
+                                    handle_ball_lost()
+                                else:
+                                    # one player end with happy end:
+                                    # go straight to attract, score _and_ ball number stays on screen
+                                    game_state = "ATTRACT"
+                                    # make the ball go slower
+                                    ball.velocity = [ball.velocity[0],  math.copysign(4, ball.velocity[0])]  # base speed 4
+                                    save_game_data()
+                            else:
+                                # traditional end: do nothing, no happy end. all lives must be lost before game ends
+                                pass
+
+            accumulated_time -= MS_PER_FRAME
+            updates += 1
+
+        # UPDATE SCREEN (DRAWING)
+
+        # first on the game area (screen)
         screen.fill(BLACK)
 
         all_bricks.draw(screen)
@@ -1365,8 +1384,6 @@ def main():
                 pygame.display.flip()
             else:
                 pygame.display.update(screen.get_rect().move((OFFSET_X - (OVERLAY_W-WIN_W)//2, OFFSET_Y - (OVERLAY_H-WIN_H)//2)))
-        if not fullfps:
-            clock.tick(FPS)
         windowresized = False
 
     pygame.quit()

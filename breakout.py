@@ -1092,13 +1092,13 @@ def main():
 
                     # Apply the strict 1976 hardware horizontal speed steps
                     if hit_position < 0.25:
-                        ball.velocity[0] = -7  # Far Left: Sharp shallow angle outward
+                        ball.velocity[0] = -6  # Far Left: Sharp shallow angle outward
                     elif hit_position < 0.50:
                         ball.velocity[0] = -3  # Inner Left: Soft vertical angle outward
                     elif hit_position < 0.75:
                         ball.velocity[0] = 3   # Inner Right: Soft vertical angle outward
                     else:
-                        ball.velocity[0] = 7   # Far Right: Sharp shallow angle outward
+                        ball.velocity[0] = 6   # Far Right: Sharp shallow angle outward
 
                     # when ai plays, vary the "hitting target point" like this, otherwise ai plays "too good"
                     if aiplay:

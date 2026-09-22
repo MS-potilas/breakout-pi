@@ -6,7 +6,7 @@
 
 ## About
 
-This project is a hardware-faithful Python and Pygame recreation of the original 1976 Atari **Breakout** arcade game. 
+This project is a hardware-faithful Python and Pygame recreation of the original 1976 Atari **Breakout** arcade game.
 
 It was developed specifically with **RetroPie** and the **Raspberry Pi 4** in mind. Since the Raspberry Pi 4 cannot emulate the original game's complex Transistor-Transistor Logic (TTL) circuits via traditional emulators like MAME or DICE, this Python implementation serves as a lightweight alternative to bring the authentic arcade experience to the system. While optimized for RetroPie, it can easily be run on any standard desktop environment (Linux, macOS, Windows) either in a window or full-screen mode.
 
@@ -30,7 +30,7 @@ All quality-of-life enhancements can be customized or toggled off completely via
 *   **Big Paddle Mode:** Doubles the paddle width for a more forgiving, yet still challenging, experience (enable via `‑‑bigpaddle`).
 *   **Expanded Inputs:** Added native mouse, keyboard, and joystick/controller support.
 *   **Pause Function:** Ability to pause the action at any time (disable via `‑‑nopause`).
-*   **Full FPS Mode:** Allows unlocking the frame rate to run the game engine as fast as possible.
+*   **Full FPS Mode:** Allows unlocking the frame rate to run the game engine in turbo mode, as fast as possible.
 *   **AI Play Mode:** Built-in bot that plays the game automatically.
 
 ### ⌨️ Controls
@@ -40,7 +40,7 @@ All quality-of-life enhancements can be customized or toggled off completely via
 *   **Mouse / Keyboard (Arrow Keys) / Joystick:** Move the paddle left or right.
 *   **P:** Pause the game (unless `‑‑nopause` is used).
 *   **S:** Switch to the next musical audio scale (**Shift + S** switches to the previous scale).
-*   **F:** Toggle between Full FPS mode and the standard 60 FPS lock.
+*   **F:** Toggle between Full FPS turbo mode and the standard 60 FPS lock.
 *   **Esc:** Exit the game.
 
 ## Screenshots
@@ -142,7 +142,7 @@ You can completely customize your Breakout-Pi experience, tweak the visual style
 | `‑‑noservelight` | Hides the "SERVE" indicator light on the screen. |
 | `‑‑nowallshift` | Disables the 2-pixel rightward shift of the brick wall. In the original 1976 arcade cabinet, the wall was slightly off-center. By default, Breakout-Pi centers the wall, but this flag restores the original off-center layout. |
 | `‑‑bigpaddle` | Doubles the width of your paddle. Perfect if you find the original 1976 difficulty brutal. The game remains challenging, but clearing the wall becomes much more achievable! |
-| `--fullfps` | Unlocks the frame rate, launching the game in full FPS mode. |
+| `--fullfps` | Launches the game in full FPS turbo mode. |
 | `--aiplay` | Enables the built-in AI bot to play the game automatically. You must serve the ball, AI only moves the paddle. Because Ai tries to be imperfect, it sometimes misses the ball. *Tip: You can use the arrow keys or a joystick (but not the mouse) to interfere and make the AI miss!* |
 
 ### 🎵 Audio Scale Options
@@ -222,6 +222,18 @@ If you prefer to have Breakout listed alongside your other classic arcade games,
 4. **Restart EmulationStation** (via Main Menu -> Quit -> Restart EmulationStation). A game named **breakout** will now appear under your *Arcade* system.
 
 5. **Launch the game** from the Arcade menu. Press any key on your keyboard or controller during the launch screen to open the RetroPie Runcommand menu. Select **breakout-pi** as the default emulator for this specific game.
+
+---
+
+## Video Demonstration
+
+If you want to see the game played through from start to finish, check out this full playthrough by the built-in AI bot:
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=2r47nT5XVzo">
+    <img src="https://i.ytimg.com/vi/2r47nT5XVzo/hqdefault.jpg" width="50%" alt="Breakout-Pi AI Playthrough">
+  </a >
+</p>
 
 ---
 
